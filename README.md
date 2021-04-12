@@ -1,6 +1,7 @@
 # SpeedNeverKilledSomebody
 suddenly becoming stationary that's what gets you
 
+## Some interesting ressources
 + [Optical flow and motion detection](https://medium.com/@ggaighernt/optical-flow-and-motion-detection-5154c6ba4419)
 
 + [Basic motion detection and tracking with Python and OpenCV](https://www.pyimagesearch.com/2015/05/25/basic-motion-detection-and-tracking-with-python-and-opencv/)
