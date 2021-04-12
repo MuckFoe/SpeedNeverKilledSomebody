@@ -1,5 +1,5 @@
 # SpeedNeverKilledSomebody
-suddenly becoming stationary that's what gets you
+Suddenly becoming stationary that's what gets you
 
 ## Some interesting ressources
 + [Optical flow and motion detection](https://medium.com/@ggaighernt/optical-flow-and-motion-detection-5154c6ba4419)
@@ -17,3 +17,7 @@ suddenly becoming stationary that's what gets you
 + [Determining other vehicle distances and collision warning - Self Driving Cars in GTA](https://pythonprogramming.net/detecting-distances-self-driving-car/)
 
 + [High-Performance Noise-tolerant Motion Detector in Python, OpenCV, and Numba](https://bitworks.software/en/high-speed-movement-detector-opencv-numba-numpy-python.html)
+
++ [The Depth I: Stereo Calibration and Rectification](https://python.plainenglish.io/the-depth-i-stereo-calibration-and-rectification-24da7b0fb1e0)
+
++ [OpenCV Camera Calibration](https://aliyasineser.medium.com/opencv-camera-calibration-e9a48bdd1844)
