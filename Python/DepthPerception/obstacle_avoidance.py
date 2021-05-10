@@ -1,6 +1,9 @@
 import numpy as np
 import cv2
 
+# source : https://learnopencv.com/depth-perception-using-stereo-camera-python-c/
+# https://github.com/spmallick/learnopencv/tree/master/Depth-Perception-Using-Stereo-Camera
+
 # Check for left and right camera IDs
 # These values can change depending on the system
 CamL_id = 2  # Camera ID for left camera
