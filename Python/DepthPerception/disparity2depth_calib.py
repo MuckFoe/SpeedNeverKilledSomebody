@@ -12,7 +12,7 @@ CamL = cv2.VideoCapture(CamL_id)
 CamR = cv2.VideoCapture(CamR_id)
 
 # Reading the mapping values for stereo image rectification
-cv_file = cv2.FileStorage("../data/stereo_rectify_maps.xml", cv2.FILE_STORAGE_READ)
+cv_file = cv2.FileStorage('C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\Python\\DepthPerception\\data\\stereo_rectify_maps.xml', cv2.FILE_STORAGE_READ)
 Left_Stereo_Map_x = cv_file.getNode("Left_Stereo_Map_x").mat()
 Left_Stereo_Map_y = cv_file.getNode("Left_Stereo_Map_y").mat()
 Right_Stereo_Map_x = cv_file.getNode("Right_Stereo_Map_x").mat()
@@ -32,7 +32,7 @@ Value_pairs = []
 disp_map = np.zeros((600, 600, 3))
 
 # Reading the stored the StereoBM parameters
-cv_file = cv2.FileStorage("../data/depth_estmation_params_py.xml", cv2.FILE_STORAGE_READ)
+cv_file = cv2.FileStorage('C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\Python\\DepthPerception\\data\\depth_estimation_params.xml', cv2.FILE_STORAGE_READ)
 numDisparities = int(cv_file.getNode("numDisparities").real())
 blockSize = int(cv_file.getNode("blockSize").real())
 preFilterType = int(cv_file.getNode("preFilterType").real())
@@ -121,7 +121,7 @@ while True:
 
         # Displaying the disparity map
         cv2.imshow("disp", disparity)
-        cv2.imshow("left image", imgL)
+        cv2.imshow("left image", imgR)
 
         if cv2.waitKey(1) == 27:
             break
@@ -164,7 +164,7 @@ C = sol[1, 0]
 print("Value of M = ", M)
 
 # Storing the updated value of M along with the stereo parameters
-cv_file = cv2.FileStorage("../data/depth_estmation_params_py.xml", cv2.FILE_STORAGE_WRITE)
+cv_file = cv2.FileStorage('C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\Python\\DepthPerception\\data\\depth_estmation_params_py.xml', cv2.FILE_STORAGE_WRITE)
 cv_file.write("numDisparities", numDisparities)
 cv_file.write("blockSize", blockSize)
 cv_file.write("preFilterType", preFilterType)
