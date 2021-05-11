@@ -1,16 +1,6 @@
 import numpy as np
 import cv2
 
-# Check for left and right camera IDs
-# These values can change depending on the system
-CamL_id = 2  # Camera ID for left camera
-CamR_id = 0  # Camera ID for right camera
-
-CamL = cv2.VideoCapture(
-    'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\sampleLeft.avi')
-CamR = cv2.VideoCapture(
-    'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\sampleRight.avi')
-
 
 def load_stereo_coefficients(path):
     """ Loads stereo matrix coefficients. """
@@ -36,8 +26,11 @@ def load_stereo_coefficients(path):
     cv_file.release()
     return [K1, D1, K2, D2, R, T, E, F, R1, R2, P1, P2, Q]
 
+CamL = cv2.VideoCapture(
+    'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\sampleLeft.avi')
+CamR = cv2.VideoCapture(
+    'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\sampleRight.avi')
 
-K1, D1, K2, D2, R, T, E, F, R1, R2, P1, P2, Q = load_stereo_coefficients('stereo.yml')  # Get cams params
 
 
 def nothing(x):
@@ -62,6 +55,8 @@ cv2.createTrackbar('minDisparity', 'disp', 5, 25, nothing)
 # Creating an object of StereoBM algorithm
 stereo = cv2.StereoBM_create()
 
+K1, D1, K2, D2, R, T, E, F, R1, R2, P1, P2, Q = load_stereo_coefficients('stereo.yml')  # Get cams params
+
 while True:
 
     # Capturing and storing left and right camera images
@@ -74,15 +69,9 @@ while True:
         imgL_gray = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
 
         leftMapX, leftMapY = cv2.initUndistortRectifyMap(K1, D1, R1, P1, (640, 400), cv2.CV_32FC1)
+        left_rectified = cv2.remap(imgL_gray, leftMapX, leftMapY, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
         rightMapX, rightMapY = cv2.initUndistortRectifyMap(K2, D2, R2, P2, (640, 400), cv2.CV_32FC1)
-
-
-        # Applying stereo image rectification on the left image
-        Left_nice = cv2.remap(imgL_gray, leftMapX, leftMapY, cv2.INTER_LANCZOS4, cv2.BORDER_CONSTANT,
-                              0)
-
-        # Applying stereo image rectification on the right image
-        Right_nice = cv2.remap(imgR_gray, rightMapX, rightMapY, cv2.INTER_LANCZOS4, cv2.BORDER_CONSTANT, 0)
+        right_rectified = cv2.remap(imgR_gray, rightMapX, rightMapY, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
 
         # Updating the parameters based on the trackbar positions
         numDisparities = cv2.getTrackbarPos('numDisparities', 'disp') * 16
@@ -111,7 +100,7 @@ while True:
         stereo.setMinDisparity(minDisparity)
 
         # Calculating disparity using the StereoBM algorithm
-        disparity = stereo.compute(Left_nice, Right_nice)
+        disparity = stereo.compute(left_rectified, right_rectified)
         # NOTE: Code returns a 16bit signed single channel image,
         # CV_16S containing a disparity map scaled by 16. Hence it
         # is essential to convert it to CV_32F and scale it down 16 times.
@@ -126,9 +115,9 @@ while True:
         cv2.imshow("disp", disparity)
 
         # Close window using esc key
-        if cv2.waitKey(1) == 27:
+        if cv2.waitKey(50) == 27:
             break
-
     else:
-        CamL = cv2.VideoCapture(CamL_id)
-        CamR = cv2.VideoCapture(CamR_id)
+        print('no video')
+        CamL.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        CamR.set(cv2.CAP_PROP_POS_FRAMES, 0)

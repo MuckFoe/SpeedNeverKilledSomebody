@@ -3,8 +3,8 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 
 # Read both images and convert to grayscale
-img1 = cv.imread('left_img.png', cv.IMREAD_GRAYSCALE)
-img2 = cv.imread('right_img.png', cv.IMREAD_GRAYSCALE)
+img1 = cv.imread('C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CameraCalibration\\calibrationImages\\cam1\\cam1_1.jpg', cv.IMREAD_GRAYSCALE)
+img2 = cv.imread('C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CameraCalibration\\calibrationImages\\cam2\\cam2_1.jpg', cv.IMREAD_GRAYSCALE)
 
 # ------------------------------------------------------------
 # PREPROCESSING
