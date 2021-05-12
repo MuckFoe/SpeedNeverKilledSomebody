@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import json
 
 
 def load_stereo_coefficients(path):
@@ -26,11 +27,28 @@ def load_stereo_coefficients(path):
     cv_file.release()
     return [K1, D1, K2, D2, R, T, E, F, R1, R2, P1, P2, Q]
 
+
 CamL = cv2.VideoCapture(
     'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\sampleLeft.avi')
 CamR = cv2.VideoCapture(
     'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\sampleRight.avi')
 
+
+def save_config(v):
+    config_map = {}
+    config_map['numDisparities'] = numDisparities / 16
+    config_map['blocksize'] = (blockSize - 5) / 2
+    config_map['preFilterType'] = preFilterType
+    config_map['preFilterSize'] = (preFilterSize - 5) / 2
+    config_map['preFilterCap'] = preFilterCap
+    config_map['textureThreshold'] = textureThreshold
+    config_map['uniquenessRatio'] = uniquenessRatio
+    config_map['speckleRange'] = speckleRange
+    config_map['speckleWindowSize'] = speckleWindowSize / 2
+    config_map['disp12MaxDiff'] = disp12MaxDiff
+    config_map['minDisparity'] = minDisparity
+    with open('config.json', 'w') as fp:
+        json.dump(config_map, fp)
 
 
 def nothing(x):
@@ -39,6 +57,9 @@ def nothing(x):
 
 cv2.namedWindow('disp', cv2.WINDOW_NORMAL)
 cv2.resizeWindow('disp', 600, 600)
+
+cv2.namedWindow('disp2', cv2.WINDOW_NORMAL)
+cv2.resizeWindow('disp2', 600, 600)
 
 cv2.createTrackbar('numDisparities', 'disp', 1, 17, nothing)
 cv2.createTrackbar('blockSize', 'disp', 5, 50, nothing)
@@ -51,6 +72,7 @@ cv2.createTrackbar('speckleRange', 'disp', 0, 100, nothing)
 cv2.createTrackbar('speckleWindowSize', 'disp', 3, 25, nothing)
 cv2.createTrackbar('disp12MaxDiff', 'disp', 5, 25, nothing)
 cv2.createTrackbar('minDisparity', 'disp', 5, 25, nothing)
+cv2.createTrackbar('saveConfig', 'disp', 1, 1, lambda v: save_config(v))
 
 # Creating an object of StereoBM algorithm
 stereo = cv2.StereoBM_create()
@@ -100,11 +122,12 @@ while True:
         stereo.setMinDisparity(minDisparity)
 
         # Calculating disparity using the StereoBM algorithm
-        disparity = stereo.compute(left_rectified, right_rectified)
+        disparity = stereo.compute(imgL_gray, imgR_gray)
+        disparity = np.uint8(disparity)
         # NOTE: Code returns a 16bit signed single channel image,
         # CV_16S containing a disparity map scaled by 16. Hence it
         # is essential to convert it to CV_32F and scale it down 16 times.
-
+        disparity = cv2.applyColorMap(disparity, cv2.COLORMAP_DEEPGREEN)
         # Converting to float32
         disparity = disparity.astype(np.float32)
 
@@ -113,6 +136,7 @@ while True:
 
         # Displaying the disparity map
         cv2.imshow("disp", disparity)
+        cv2.imshow("disp2", left_rectified)
 
         # Close window using esc key
         if cv2.waitKey(50) == 27:
@@ -121,3 +145,5 @@ while True:
         print('no video')
         CamL.set(cv2.CAP_PROP_POS_FRAMES, 0)
         CamR.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+print()
