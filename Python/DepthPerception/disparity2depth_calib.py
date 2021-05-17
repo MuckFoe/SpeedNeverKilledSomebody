@@ -12,7 +12,7 @@ CamL = cv2.VideoCapture(CamL_id)
 CamR = cv2.VideoCapture(CamR_id)
 
 # Reading the mapping values for stereo image rectification
-cv_file = cv2.FileStorage('C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\Python\\DepthPerception\\data\\stereo_rectify_maps.xml', cv2.FILE_STORAGE_READ)
+cv_file = cv2.FileStorage('.\\data\\stereo_rectify_maps.xml', cv2.FILE_STORAGE_READ)
 Left_Stereo_Map_x = cv_file.getNode("Left_Stereo_Map_x").mat()
 Left_Stereo_Map_y = cv_file.getNode("Left_Stereo_Map_y").mat()
 Right_Stereo_Map_x = cv_file.getNode("Right_Stereo_Map_x").mat()
@@ -22,8 +22,8 @@ cv_file.release()
 # These parameters can vary according to the setup
 # Keeping the target object at max_dist we store disparity values
 # after every sample_delta distance.
-max_dist = 230  # max distance to keep the target object (in cm)
-min_dist = 50  # Minimum distance the stereo setup can measure (in cm)
+max_dist = 100  # max distance to keep the target object (in cm)
+min_dist = 20  # Minimum distance the stereo setup can measure (in cm)
 sample_delta = 40  # Distance between two sampling points (in cm)
 
 Z = max_dist
@@ -32,7 +32,7 @@ Value_pairs = []
 disp_map = np.zeros((600, 600, 3))
 
 # Reading the stored the StereoBM parameters
-cv_file = cv2.FileStorage('C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\Python\\DepthPerception\\data\\depth_estimation_params.xml', cv2.FILE_STORAGE_READ)
+cv_file = cv2.FileStorage('.\\data\\depth_estimation_params.xml', cv2.FILE_STORAGE_READ)
 numDisparities = int(cv_file.getNode("numDisparities").real())
 blockSize = int(cv_file.getNode("blockSize").real())
 preFilterType = int(cv_file.getNode("preFilterType").real())
@@ -164,7 +164,7 @@ C = sol[1, 0]
 print("Value of M = ", M)
 
 # Storing the updated value of M along with the stereo parameters
-cv_file = cv2.FileStorage('C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\Python\\DepthPerception\\data\\depth_estmation_params_py.xml', cv2.FILE_STORAGE_WRITE)
+cv_file = cv2.FileStorage('.\\data\\depth_estmation_params_py.xml', cv2.FILE_STORAGE_WRITE)
 cv_file.write("numDisparities", numDisparities)
 cv_file.write("blockSize", blockSize)
 cv_file.write("preFilterType", preFilterType)
