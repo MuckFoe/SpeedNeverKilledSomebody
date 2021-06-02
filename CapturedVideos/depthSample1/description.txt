@@ -1,0 +1,2 @@
+The disparity value and depth value for each pixel can be computed by converting the uint16 value to float and dividing it by 256.
+The zero values indicate the invalid pixels.
