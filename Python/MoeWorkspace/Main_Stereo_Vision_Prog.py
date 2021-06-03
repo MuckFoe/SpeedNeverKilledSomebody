@@ -78,21 +78,19 @@ imgpointsL = []
 print('Starting calibration for the 2 cameras... ')
 
 
-pathL = "../../CameraCalibration/0.8/calibrationImages/camL/"
-pathR = "../../CameraCalibration/0.8/calibrationImages/camR/"
+pathL = "../../CameraCalibration/0.9/calibrationImages/camL/"
+pathR = "../../CameraCalibration/0.9/calibrationImages/camR/"
 
 # Call all saved images
-for i in range(1, 61):   # Put the amount of pictures you have taken for the calibration inbetween range(0,?) wenn starting from the image number 0
+for i in range(1, 107):   # Put the amount of pictures you have taken for the calibration inbetween range(0,?) wenn starting from the image number 0
     t = str(i)
 
     ChessImaL = cv2.imread(pathL+"camL_%d.jpg" % i,0)
     ChessImaR = cv2.imread(pathR+"camR_%d.jpg" % i,0)
     # ChessImaR= cv2.imread('chessboard-R'+t+'.png',0)    # Right side
     # ChessImaL= cv2.imread('chessboard-L'+t+'.png',0)    # Left side
-    retR, cornersR = cv2.findChessboardCorners(ChessImaR,
-                                               (9, 6), None)  # Define the number of chees corners we are looking for
-    retL, cornersL = cv2.findChessboardCorners(ChessImaL,
-                                               (9, 6), None)  # Left side
+    retR, cornersR = cv2.findChessboardCorners(ChessImaR, (9, 6), None)  # Define the number of chees corners we are looking for
+    retL, cornersL = cv2.findChessboardCorners(ChessImaL, (9, 6), None)  # Left side
     if (True == retR) & (True == retL):
         objpoints.append(objp)
         cv2.cornerSubPix(ChessImaR, cornersR, (11, 11), (-1, -1), criteria)
@@ -105,6 +103,8 @@ for i in range(1, 61):   # Put the amount of pictures you have taken for the cal
 retR, mtxR, distR, rvecsR, tvecsR = cv2.calibrateCamera(objpoints,
                                                         imgpointsR,
                                                         ChessImaR.shape[::-1], None, None)
+print('retR')
+print(retR)
 hR, wR = ChessImaR.shape[:2]
 OmtxR, roiR = cv2.getOptimalNewCameraMatrix(mtxR, distR,
                                             (wR, hR), 1, (wR, hR))
@@ -113,6 +113,8 @@ OmtxR, roiR = cv2.getOptimalNewCameraMatrix(mtxR, distR,
 retL, mtxL, distL, rvecsL, tvecsL = cv2.calibrateCamera(objpoints,
                                                         imgpointsL,
                                                         ChessImaL.shape[::-1], None, None)
+print('retL')
+print(retL)
 hL, wL = ChessImaL.shape[:2]
 OmtxL, roiL = cv2.getOptimalNewCameraMatrix(mtxL, distL, (wL, hL), 1, (wL, hL))
 
@@ -145,17 +147,30 @@ retS, MLS, dLS, MRS, dRS, R, T, E, F = cv2.stereoCalibrate(objpoints,
                                                            ChessImaR.shape[::-1],
                                                            criteria_stereo,
                                                            flags)
-
+print('retS')
+print(retS)
 # StereoRectify function
 rectify_scale = 1  # if 0 image croped, if 1 image nor croped
 RL, RR, PL, PR, Q, roiL, roiR = cv2.stereoRectify(MLS, dLS, MRS, dRS,
                                                   ChessImaR.shape[::-1], R, T,
                                                   rectify_scale, (0, 0))  # last paramater is alpha, if 0= croped, if 1= not croped
+
 # initUndistortRectifyMap function
 Left_Stereo_Map = cv2.initUndistortRectifyMap(MLS, dLS, RL, PL,
                                               ChessImaR.shape[::-1], cv2.CV_16SC2)   # cv2.CV_16SC2 this format enables us the programme to work faster
 Right_Stereo_Map = cv2.initUndistortRectifyMap(MRS, dRS, RR, PR,
                                                ChessImaR.shape[::-1], cv2.CV_16SC2)
+
+
+print("Saving parameters ......")
+cv_file = cv2.FileStorage("improved_params2.xml", cv2.FILE_STORAGE_WRITE)
+cv_file.write("Left_Stereo_Map_x", Left_Stereo_Map[0])
+cv_file.write("Left_Stereo_Map_y", Left_Stereo_Map[1])
+cv_file.write("Right_Stereo_Map_x", Right_Stereo_Map[0])
+cv_file.write("Right_Stereo_Map_y", Right_Stereo_Map[1])
+cv_file.release()
+
+
 # *******************************************
 # ***** Parameters for the StereoVision *****
 # *******************************************
@@ -180,7 +195,7 @@ stereoR = cv2.ximgproc.createRightMatcher(stereo)
 
 # WLS FILTER Parameters
 lmbda = 80000
-sigma = 1.8
+sigma = 2
 visual_multiplier = 1.0
 
 wls_filter = cv2.ximgproc.createDisparityWLSFilter(matcher_left=stereo)
