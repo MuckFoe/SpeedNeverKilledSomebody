@@ -114,7 +114,7 @@ while True:
         stereo.setMinDisparity(minDisparity)
 
         # Calculating disparity using the StereoBM algorithm
-        disparity = stereo.compute(imgL_gray, imgR_gray)
+        disparity = stereo.compute(Left_nice, Right_nice)
         disparity = np.uint8(disparity)
         # NOTE: Code returns a 16bit signed single channel image,
         # CV_16S containing a disparity map scaled by 16. Hence it

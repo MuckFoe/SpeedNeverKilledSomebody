@@ -25,7 +25,7 @@ def coords_mouse_disp(event, x, y, flags, param):
         # 48,847x-1,094
         Distance = 48.847*average**(-1.094)
         Distance = np.around(Distance*0.01, decimals=2)
-        print('Distance: ' + str(Distance-0.2)+' m')
+        print('Distance: ' + str(Distance)+' m')
 
 # This section has to be uncommented if you want to take mesurements and store them in the excel
 # ws.append([counterdist, average])
