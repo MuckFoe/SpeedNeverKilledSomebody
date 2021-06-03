@@ -17,28 +17,6 @@ Right_Stereo_Map_y = cv_file.getNode("Right_Stereo_Map_y").mat()
 cv_file.release()
 
 
-#Load camera parameters
-retR = np.load('./camera_params/retR.npy')
-kR = np.load('./camera_params/kR.npy')
-distR = np.load('./camera_params/distR.npy')
-
-#Load camera parameters
-retL = np.load('./camera_params/retL.npy')
-kL = np.load('./camera_params/KL.npy')
-distL = np.load('./camera_params/distL.npy')
-
-#Function that Downsamples image x number (reduce_factor) of times. 
-def downsample_image(image, reduce_factor):
-	for i in range(0,reduce_factor):
-		#Check if image is color or grayscale
-		if len(image.shape) > 2:
-			row,col = image.shape[:2]
-		else:
-			row,col = image.shape
-
-		image = cv2.pyrDown(image, dstsize= (col//2, row // 2))
-	return image
-
 def save_config(v):
     config_map = {}
     config_map['numDisparities'] = numDisparities / 16
@@ -91,21 +69,23 @@ while True:
     # Proceed only if the frames have been captured
     if retL and retR:
 
+        imgR_gray = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
+        imgL_gray = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
+        # Applying stereo image rectification on the left image
+        Left_nice = cv2.remap(imgL_gray,
+                              Left_Stereo_Map_x,
+                              Left_Stereo_Map_y,
+                              cv2.INTER_LANCZOS4,
+                              cv2.BORDER_CONSTANT,
+                              0)
 
-        h,w = imgL.shape[:2]
-        #Get optimal camera matrix for better undistortion 
-        new_camera_matrixL, roiL = cv2.getOptimalNewCameraMatrix(kL,distR,(w,h),1,(w,h))
-        new_camera_matrixR, roiR = cv2.getOptimalNewCameraMatrix(kR,distL,(w,h),1,(w,h))
-        #Undistort images
-        img_R_undistorted = cv2.undistort(imgR, kR, distR, None, new_camera_matrixR)
-        img_L_undistorted = cv2.undistort(imgL, kL, distL, None, new_camera_matrixL)
-
-        imgR_gray = cv2.cvtColor(img_R_undistorted, cv2.COLOR_BGR2GRAY)
-        imgL_gray = cv2.cvtColor(img_L_undistorted, cv2.COLOR_BGR2GRAY)
-        #leftMapX, leftMapY = cv2.initUndistortRectifyMap(K1, D1, R1, P1, (640, 400), cv2.CV_32FC1)
-        #left_rectified = cv2.remap(imgL_gray, leftMapX, leftMapY, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
-        #rightMapX, rightMapY = cv2.initUndistortRectifyMap(K2, D2, R2, P2, (640, 400), cv2.CV_32FC1)
-        #right_rectified = cv2.remap(imgR_gray, rightMapX, rightMapY, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
+        # Applying stereo image rectification on the right image
+        Right_nice = cv2.remap(imgR_gray,
+                               Right_Stereo_Map_x,
+                               Right_Stereo_Map_y,
+                               cv2.INTER_LANCZOS4,
+                               cv2.BORDER_CONSTANT,
+                               0)
 
         # Updating the parameters based on the trackbar positions
         numDisparities = cv2.getTrackbarPos('numDisparities', 'disp') * 16
@@ -148,7 +128,7 @@ while True:
 
         # Displaying the disparity map
         cv2.imshow("disp", disparity)
-        cv2.imshow("disp2", imgL_gray)
+        cv2.imshow("disp2", Left_nice)
 
         # Close window using esc key
         if cv2.waitKey(50) == 27:

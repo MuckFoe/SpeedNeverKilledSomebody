@@ -8,8 +8,8 @@ from tqdm import tqdm
 
 
 # Set the path to the images captured by the left and right cameras
-pathL = "../../CameraCalibration/sanityCheck/calibrationImages/camL/"
-pathR = "../../CameraCalibration/sanityCheck/calibrationImages/camR/"
+pathL = "../../CameraCalibration/0.8/calibrationImages/camL/"
+pathR = "../../CameraCalibration/0.8/calibrationImages/camR/"
 
 # Termination criteria for refining the detected corners
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -23,16 +23,16 @@ img_ptsR = []
 obj_pts = []
 
 for i in tqdm(range(1, len(os.listdir(pathL)))):
-    #imgL = cv2.imread(pathL+"camL_%d.jpg" % i)
-    #imgR = cv2.imread(pathR+"camR_%d.jpg" % i)
-    #imgL_gray = cv2.imread(pathL+"camL_%d.jpg" % i, 0)
-    #imgR_gray = cv2.imread(pathR+"camR_%d.jpg" % i, 0)
+    imgL = cv2.imread(pathL+"camL_%d.jpg" % i)
+    imgR = cv2.imread(pathR+"camR_%d.jpg" % i)
+    imgL_gray = cv2.imread(pathL+"camL_%d.jpg" % i, 0)
+    imgR_gray = cv2.imread(pathR+"camR_%d.jpg" % i, 0)
 
     # this part here is only for the sanitycheck pictures
-    imgL = cv2.imread(pathL+"left%d.jpg" % i)
-    imgR = cv2.imread(pathR+"right%d.jpg" % i)
-    imgL_gray = cv2.imread(pathL+"left%d.jpg" % i, 0)
-    imgR_gray = cv2.imread(pathR+"right%d.jpg" % i, 0)
+    #imgL = cv2.imread(pathL+"left%d.jpg" % i)
+    #imgR = cv2.imread(pathR+"right%d.jpg" % i)
+    #imgL_gray = cv2.imread(pathL+"left%d.jpg" % i, 0)
+    #imgR_gray = cv2.imread(pathR+"right%d.jpg" % i, 0)
 
     outputL = imgL.copy()
     outputR = imgR.copy()
@@ -193,9 +193,9 @@ disp = cv2.normalize(disp, 0, 255, cv2.NORM_MINMAX)
 # Displaying the disparity map
 cv2.imshow("disparity", disp)
 
-pointCloud = cv2.reprojectImageTo3D(disp, Q, handleMissingValues=0)
+#pointCloud = cv2.reprojectImageTo3D(disp, Q, handleMissingValues=0)
 
-print(pointCloud)
-np.save("./pointCloud", pointCloud)
-cv2.imshow("Output image", out)
+#print(pointCloud)
+#np.save("./pointCloud", pointCloud)
+#cv2.imshow("Output image", out)
 cv2.waitKey(0)
