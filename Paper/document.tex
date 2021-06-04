@@ -279,6 +279,8 @@ In the UI are many different parameters to tune. Also there is the option to sav
 On the left the disparity map and on the right the original left side image.
 \subsection{Depth Map}
 \noindent
+At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function 'reprojectImageTo3D', which takes the disparity map as well as the Q matrix we computed during the rectification process to compute a depth map.
+Alternatively there is the possibility to sort of calibrate the disparity-depth mapping. This means taking a video/ picture of an object at a known distance, creating the corresponding disparity map and extract the value. With both of these values a regression line gets computed. With the formular of the regression line we can now average the distance of an object based on the its disparity value.
 \subsection{Object Detection}
 \noindent
 \subsection{Object Tracking}
@@ -287,6 +289,7 @@ On the left the disparity map and on the right the original left side image.
 \noindent
 \subsection{Distance}
 \noindent
+For testing purposes the initial idea is an event based system. On double-click an openCV event gets triggered, containing a x and y position of the mouse click. These values get enhanced to a window, all disparity values in this window get added up to compute an average a
 \subsection{Direction}
 \noindent
 \section{Prerequisites}
