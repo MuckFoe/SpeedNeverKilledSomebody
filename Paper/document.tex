@@ -291,7 +291,7 @@ Alternatively there is the possibility to sort of calibrate the disparity-depth 
 \end{figure}
 The resulting regression is extremely basic:
 \begin{equation}
-	distance = \frac{average\_disparity}{0.34}
+	distance = \frac{M}{average\_disparity}
 \end{equation}
 On top of this the result will get rounded to two decimals. In Figure 9 we can see this working on a sample video. The box is placed at distance of 1.50m and the output of the whole function is 1.49m. This is a pretty good result.
 \subsection{Object Detection}

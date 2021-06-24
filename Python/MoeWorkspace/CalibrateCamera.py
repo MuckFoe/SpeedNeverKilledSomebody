@@ -104,6 +104,8 @@ rect_l, rect_r, proj_mat_l, proj_mat_r, Q, roiL, roiR = cv2.stereoRectify(new_mt
                                                                           Rot,
                                                                           Trns,
                                                                           rectify_scale, (0, 0))
+
+print(Q)
 Left_Stereo_Map = cv2.initUndistortRectifyMap(new_mtxL, distL, rect_l, proj_mat_l,
                                               imgL.shape[::-1], cv2.CV_16SC2)
 Right_Stereo_Map = cv2.initUndistortRectifyMap(new_mtxR, distR, rect_r, proj_mat_r,
