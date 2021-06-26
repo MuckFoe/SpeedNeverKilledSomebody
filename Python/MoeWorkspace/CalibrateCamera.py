@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+
 
 import cv2
 import numpy as np
 import os
 import glob
-from tqdm import tqdm
+#from tqdm import tqdm
 
 
 # Set the path to the images captured by the left and right cameras
@@ -49,6 +49,7 @@ for i in range(1, 107):
 
 
 # Calibrating left camera
+print("calibrating left camera...")
 retL, mtxL, distL, rvecsL, tvecsL = cv2.calibrateCamera(obj_pts,
                                                         img_ptsL,
                                                         imgL.shape[::-1], None, None)
@@ -60,6 +61,7 @@ print('retL')
 print(retL)
 
 # Calibrating right camera
+print("calibrating right camera...")
 retR, mtxR, distR, rvecsR, tvecsR = cv2.calibrateCamera(obj_pts,
                                                         img_ptsR,
                                                         imgR.shape[::-1], None, None)

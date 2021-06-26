@@ -3,9 +3,9 @@ import cv2
 import json
 
 CamL = cv2.VideoCapture(
-    'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\samples\\zMovingSampleLeft640x480.avi')
+    '..\\..\\CapturedVideos\\samples\\zMovingSampleLeft640x480.avi')
 CamR = cv2.VideoCapture(
-    'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\samples\\zMovingSampleRight640x480.avi')
+    '..\\..\\CapturedVideos\\samples\\zMovingSampleRight640x480.avi')
 
 # Reading the mapping values for stereo image rectification
 cv_file = cv2.FileStorage(
