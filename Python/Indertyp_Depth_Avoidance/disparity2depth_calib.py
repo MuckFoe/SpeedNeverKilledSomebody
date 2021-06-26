@@ -8,8 +8,14 @@ import matplotlib.pyplot as plt
 CamL_id = 2  # Camera ID for left camera
 CamR_id = 0  # Camera ID for right camera
 
-CamL = cv2.VideoCapture(CamL_id)
-CamR = cv2.VideoCapture(CamR_id)
+
+CamL = cv2.VideoCapture(
+    '..\\..\\CapturedVideos\\samples\\zMovingSampleLeft640x480.avi')
+CamR = cv2.VideoCapture(
+    '..\\..\\CapturedVideos\\samples\\zMovingSampleRight640x480.avi')
+
+#CamL = cv2.VideoCapture(CamL_id)
+#CamR = cv2.VideoCapture(CamR_id)
 
 # Reading the mapping values for stereo image rectification
 cv_file = cv2.FileStorage('./data/stereo_rectify_maps.xml', cv2.FILE_STORAGE_READ)

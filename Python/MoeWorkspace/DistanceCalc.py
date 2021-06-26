@@ -6,26 +6,51 @@
 import numpy as np
 import cv2
 from openpyxl import Workbook  # Used for writing data into an Excel file
-from sklearn.preprocessing import normalize
+#from sklearn.preprocessing import normalize
+
 
 # Filtering
 kernel = np.ones((3, 3), np.uint8)
 
+Q = [[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -2.93386066e+02],
+ [ 0.00000000e+00,  1.00000000e+00,  0.00000000e+00, -2.34396317e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  7.69477289e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  3.47341446e-01, -0.00000000e+00]]
+
+
+
+# Create the background subtractor object
+# Use the last 700 video frames to build the background
+back_sub = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=25, detectShadows=False)
+
+max_depth = 2.00  # maximum distance the setup can measure (in m)
+min_depth = 0.10  # minimum distance the setup can measure (in m)
+depth_map = []
+
+
+def compute_distance(x, y):
+    average = 0
+    for u in range(-1, 2):
+        for v in range(-1, 2):
+            average += disp[y+u, x+v]
+    average = average/9
+
+    Distance = 48.847*average**(-1.094)
+    return np.around(Distance*0.01, decimals=2)
+
+def compute_distance_m_matrix(x, y):
+    average = 0
+    for u in range(-1, 2):
+        for v in range(-1, 2):
+            average += disp[y+u, x+v]
+    average = average/9
+
+    Distance = M / (average)
+    return np.around(Distance, decimals=2)   
 
 def coords_mouse_disp(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDBLCLK:
-        # print x,y,disp[y,x],filteredImg[y,x]
-        average = 0
-        for u in range(-1, 2):
-            for v in range(-1, 2):
-                average += disp[y+u, x+v]
-        average = average/9
-        print('average: = ' + str(average))
-        #Distance = -0.0000007*average**(3) +0.0003* average**(2) - 0.0343*average + + 1.8291
-        # 48,847x-1,094
-        Distance = 48.847*average**(-1.094)
-        Distance = np.around(Distance*0.01, decimals=2)
-        print('Distance: ' + str(Distance)+' m')
+        print("Distance = %.2f m" % compute_distance_m_matrix( x, y))
 
 # This section has to be uncommented if you want to take mesurements and store them in the excel
 # ws.append([counterdist, average])
@@ -37,6 +62,77 @@ def coords_mouse_disp(event, x, y, flags, param):
 # else:
 # counterdist += 10
 # print('Next distance to measure: '+str(counterdist)+'cm')
+
+def create_depth_map():
+    depth_map = M / (disp)
+    mask_temp = cv2.inRange(depth_map, min_depth, max_depth)
+    depth_map = cv2.bitwise_and(depth_map, depth_map, mask=mask_temp)
+
+
+def track_object(frame):
+    # Use every frame to calculate the foreground mask and update
+    # the background
+    fg_mask = back_sub.apply(frame)
+ 
+    # Close dark gaps in foreground object using closing
+    fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_CLOSE, kernel)
+ 
+    # Remove salt and pepper noise with a median filter
+    fg_mask = cv2.medianBlur(fg_mask, 5) 
+     
+    # Threshold the image to make it either black or white
+    _, fg_mask = cv2.threshold(fg_mask,127,255,cv2.THRESH_BINARY)
+
+    # Find the index of the largest contour and draw bounding box
+    fg_mask_bb = fg_mask
+    contours, hierarchy = cv2.findContours(fg_mask_bb,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+    areas = [cv2.contourArea(c) for c in contours]
+
+    # If there are no countours
+    if len(areas) < 1:
+        return
+ 
+    else:
+       # Find the largest moving object in the image
+       max_index = np.argmax(areas)
+    # Draw the bounding box
+    cnt = contours[max_index]
+    cv2.drawContours(grayL, cnt, -1, (255,0,0), thickness=2)
+    x,y,w,h = cv2.boundingRect(cnt)
+    cv2.rectangle(grayL,(x,y),(x+w,y+h),(0,255,0),3)
+    # Draw circle in the center of the bounding box
+    x2 = x + int(w/2)
+    y2 = y + int(h/2)
+    cv2.circle(grayL,(x2,y2),4,(0,255,0),-1)
+ 
+    # Print the centroid coordinates (we'll use the center of the
+    # bounding box) on the image
+    text = "depth: " + str(compute_distance_m_matrix(x2, y2)) + "m"
+    cv2.putText(grayL, text, (x2 - 10, y2 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+def append_ply_array(verts, colors):
+    global accumulated_verts
+    verts = verts.reshape(-1, 3)
+    colors = colors.reshape(-1, 3)
+    verts_new = np.hstack([verts, colors])
+    if accumulated_verts is not None:
+        accumulated_verts = np.vstack([accumulated_verts, verts_new])
+    else:
+        accumulated_verts = verts_new    
+
+def to_3d():    
+    points = cv2.reprojectImageTo3D(disp, Q)
+    colors = cv2.cvtColor(Left_nice, cv2.COLOR_BGR2RGB)
+    mask = disp > disp.min()
+    out_points = points[mask]
+    out_colors = colors[mask]
+    append_ply_array(out_points, out_colors)
+
+    disparity_scaled = (disp - min_disp) / num_disp
+    disparity_scaled += abs(np.amin(disparity_scaled))
+    disparity_scaled /= np.amax(disparity_scaled)
+    disparity_scaled[disparity_scaled < 0] = 0
+    return np.array(255 * disparity_scaled, np.uint8) 
 
 
 # Mouseclick callback
@@ -83,9 +179,11 @@ wls_filter.setSigmaColor(sigma)
 # CamL= cv2.VideoCapture(2)
 
 CamL = cv2.VideoCapture(
-    'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\samples\\zMovingSampleLeft640x480.avi')
+    '..\\..\\CapturedVideos\\samples\\zMovingSampleLeft640x480.avi')
+ #   '..\\..\\CapturedVideos\\samples\\sampleLeft.avi')
 CamR = cv2.VideoCapture(
-    'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\samples\\zMovingSampleRight640x480.avi')
+    '..\\..\\CapturedVideos\\samples\\zMovingSampleRight640x480.avi')
+  #  '..\\..\\CapturedVideos\\samples\\sampleRight.avi')
 
 # Reading the mapping values for stereo image rectification
 cv_file = cv2.FileStorage(
@@ -94,8 +192,10 @@ Left_Stereo_Map_x = cv_file.getNode("Left_Stereo_Map_x").mat()
 Left_Stereo_Map_y = cv_file.getNode("Left_Stereo_Map_y").mat()
 Right_Stereo_Map_x = cv_file.getNode("Right_Stereo_Map_x").mat()
 Right_Stereo_Map_y = cv_file.getNode("Right_Stereo_Map_y").mat()
+M = cv_file.getNode("M").real() #box .343 handstand .32
 cv_file.release()
 
+counter = 0
 
 while True:
     # Start Reading Camera images
@@ -126,6 +226,7 @@ while True:
         grayR = cv2.cvtColor(Right_nice, cv2.COLOR_BGR2GRAY)
         grayL = cv2.cvtColor(Left_nice, cv2.COLOR_BGR2GRAY)
 
+
         # Compute the 2 images for the Depth_image
         disp = stereo.compute(grayL, grayR)  # .astype(np.float32)/ 16
         dispL = disp
@@ -142,6 +243,8 @@ while True:
         # Calculation allowing us to have 0 for the most distant object able to detect
         disp = ((disp.astype(np.float32) / 16)-min_disp)/num_disp
 
+
+
     # Resize the image for faster executions
     # dispR= cv2.resize(disp,None,fx=0.7, fy=0.7, interpolation = cv2.INTER_AREA)
 
@@ -157,19 +260,33 @@ while True:
         disp_Color = cv2.applyColorMap(dispC, cv2.COLORMAP_OCEAN)
         filt_Color = cv2.applyColorMap(filteredImg, cv2.COLORMAP_OCEAN)
 
+        
+        #track object
+        track_object(grayL)
+
+        
+
         # Show the result for the Depth_image
         # cv2.imshow('Disparity', disp)
         # cv2.imshow('Closing',closing)
         # cv2.imshow('Color Depth',disp_Color)
-        cv2.imshow('Filtered Color Depth', filt_Color)
+        # cv2.imshow('Filtered Color Depth', filt_Color)
+        cv2.imshow('Image Result', grayL)
+
 
         # Mouse click
-        cv2.setMouseCallback("Filtered Color Depth",
-                             coords_mouse_disp, filt_Color)
+        cv2.setMouseCallback("Image Result",
+                             coords_mouse_disp, grayL)
+
+        counter += 1
 
         # End the Programme
+        #if counter == 83:
         if cv2.waitKey(1) & 0xFF == ord(' '):
+            cv2.imwrite('c1.png', grayL)
+            print('screenshot taken ' +  str(counter))
             break
+
     else:
         print('no video')
         CamL.set(cv2.CAP_PROP_POS_FRAMES, 0)

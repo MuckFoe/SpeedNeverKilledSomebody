@@ -21,7 +21,7 @@
 import numpy as np
 import cv2
 from openpyxl import Workbook  # Used for writing data into an Excel file
-from sklearn.preprocessing import normalize
+#from sklearn.preprocessing import normalize
 
 # Filtering
 kernel = np.ones((3, 3), np.uint8)
@@ -211,9 +211,9 @@ wls_filter.setSigmaColor(sigma)
 #CamL= cv2.VideoCapture(2)
 
 CamL = cv2.VideoCapture(
-    'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\samples\\zMovingSampleLeft1280x720.avi')
+    '../../CapturedVideos/samples/zMovingSampleLeft1280x720.avi')
 CamR = cv2.VideoCapture(
-    'C:\\Users\\Moe\\Desktop\\UniversityCoursesGit\\SpeedNeverKilledSomebody\\CapturedVideos\\samples\\zMovingSampleRight1280x720.avi')
+    '../../CapturedVideos/samples/zMovingSampleRight1280x720.avi')
 
 while True:
     # Start Reading Camera images
