@@ -295,7 +295,21 @@ The resulting regression is extremely basic:
 \end{equation}
 On top of this the result will get rounded to two decimals. In Figure 9 we can see this working on a sample video. The box is placed at distance of 1.50m and the output of the whole function is 1.49m. This is a pretty good result.
 \subsection{Object Detection}
-\noindent
+\noindent For objectdetection our first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparitymap being an unprecise projection of the real picture, we endet up basic patterns in the pictures being detected as seen in ~\ref{tracking}.
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{handstand_comparison.png}
+	\label{tracking}
+	\caption{Left: Detection on original picture Right: Detection on disparity picture }
+\end{figure}
+ So we used the original grayscale picture of one of our cameras to detect the objects. This was done by creating a mask that substrackts our unmoving areas of the picture, leaving uns with only our object we want to track.
+\begin{python}
+back_sub = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=25, detectShadows=False)
+\end{python}
+This works by comparing a history of frames and declaring its unchanged pictures as background. \newline
+next countours with findContours()
+nextbiggest contour draw box and centerpoint
+
 \subsection{Object Tracking}
 \noindent
 \section{Measurements}
@@ -320,8 +334,6 @@ For testing purposes the initial idea is an event based system. On double-click 
 	\end{tabular}
 \end{table}
 \noindent The mean squared error of these observations is 0.00034. The closer the value to 0 the better the result, meaning that the computed distance is extremely good. But this needs to be put into perspective, meaning this test was performed under laboratory conditions which should result in this kinda of perfection.
-\subsection{Direction}
-\noindent
 \section{Conclusion}
 \noindent The most important conclusion of this study is quite sobering. With the experience gained from working with the system, there are way too many factors that influence the result. Even more important those factors or variables are not always controllable. This means from time to time, results from some functions are more or less arbitrary. Especially the calibration of the stereo cameras is quite a difficult task. Most of the time the result of openCV calibration, meaning removing of Distortion as well as rectifying images, isn't comprehensible. A big variable are the pictures, and their quality, as a consequence this means the camera used is quite important. In our case the cameras are designed for this purpose, but this doesn't mean the cameras don't have problems. Basically the calibration process was done by try and error. This means the calibration is not as easy as most documentations suggest. By this a the following algorithms, for example computation of distance, are inferred by this, lets call it blur. \newline
 If those problems are left aside the result for distance as well as speed are quite satisfying. With a better setup that doesn't depend as much on calibration, for example usage of a Intel RealSense camera could enhance the result enormously. And almost as important, would ease up development since the camera modul for JetBot in combination with the nVidia Jetson Nano development board does also provide some problems which won't be discussed at this point. \newline
