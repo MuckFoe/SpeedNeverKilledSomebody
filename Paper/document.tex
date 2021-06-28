@@ -239,6 +239,7 @@ rect_l, rect_r, proj_mat_l, proj_mat_r, Q, roiL, roiR = cv2.stereoRectify(new_mt
 										rectify_scale, (0, 0))
 \end{python}
 Once again all previous results are input for the function. The function results in two rectification transform matrices, which brings points given in the unrectified camera's coordinate system to points in the rectified camera's coordinate system. Also the projection matrix, in the now recitfied coordinate system of the camera, which projects points into the camera image.
+
 \subsection{Disparity Map}
 \noindent
 Disparity is usually computed as a shift of an image feature when viewed in the right/left image. For example, a single point that appears at the x coordinate k (measured in pixels) in the left image may be present at the k coordinate k minus 3 in the right image. This would result in a disparity value of 3 in pixels. These disparity values are the base for the computation of the depth map.
@@ -269,6 +270,7 @@ To further improve those parameters, an user interface was build to change the v
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{calibrateUI.png}
+	\label{UI}
 	\caption{UI for calibrating all parameters of the Block Matching Algorithm}
 \end{figure}
 \noindent
@@ -280,19 +282,27 @@ In the UI are many different parameters to tune. Also there is the option to sav
 \end{figure}
 \noindent
 On the left the disparity map and on the right the original left side image.
+
 \subsection{Depth Map}
 \noindent
 At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function 'reprojectImageTo3D', which takes the disparity map as well as the Q matrix we computed during the rectification process to compute a depth map.
-Alternatively there is the possibility to sort of calibrate the disparity-depth mapping. This means taking a video/ picture of an object at a known distance, creating the corresponding disparity map and extract the value. With both of these values a regression line gets computed. With the formular of the regression line we can now average the distance of an object based on the its disparity value.
+Alternatively we can compute the corresponding distance to every disparity value with the inverse of this value. The relation between depth and disparity is non-linear, but by using the inverse this relation becomes linear. The equation for this is the following: 
+\begin{equation}
+	Distance = \frac{M}{Disparity}
+\end{equation}
+With M being the product of the focal length f and the baseline B of our camera. \newline
+In this practical scenario, we assume that some of our values may have a small error. This might be because the disparity values are not as exact as we expected them to be, or because the camera has some construction issues. Because of this, we don´t just throw in our values for B and f, but find our value M by trying, similarly to the UI used to find the optimal parameters for the Blockmatching Algorithm ~\ref{UI}. 
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{ratios.png}
+	\caption{}
+\end{figure}
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{distanceCalcRegression.png}
 	\caption{Depth map calculated with blue color filter and a computed distance based on a regression function}
 \end{figure}
-The resulting regression is extremely basic:
-\begin{equation}
-	distance = \frac{M}{average\_disparity}
-\end{equation}
+
 On top of this the result will get rounded to two decimals. In Figure 9 we can see this working on a sample video. The box is placed at distance of 1.50m and the output of the whole function is 1.49m. This is a pretty good result.
 \subsection{Object Detection}
 \noindent For objectdetection our first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparitymap being an unprecise projection of the real picture, we endet up basic patterns in the pictures being detected as seen in ~\ref{tracking}.
@@ -337,7 +347,7 @@ For testing purposes the initial idea is an event based system. On double-click 
 \section{Conclusion}
 \noindent The most important conclusion of this study is quite sobering. With the experience gained from working with the system, there are way too many factors that influence the result. Even more important those factors or variables are not always controllable. This means from time to time, results from some functions are more or less arbitrary. Especially the calibration of the stereo cameras is quite a difficult task. Most of the time the result of openCV calibration, meaning removing of Distortion as well as rectifying images, isn't comprehensible. A big variable are the pictures, and their quality, as a consequence this means the camera used is quite important. In our case the cameras are designed for this purpose, but this doesn't mean the cameras don't have problems. Basically the calibration process was done by try and error. This means the calibration is not as easy as most documentations suggest. By this a the following algorithms, for example computation of distance, are inferred by this, lets call it blur. \newline
 If those problems are left aside the result for distance as well as speed are quite satisfying. With a better setup that doesn't depend as much on calibration, for example usage of a Intel RealSense camera could enhance the result enormously. And almost as important, would ease up development since the camera modul for JetBot in combination with the nVidia Jetson Nano development board does also provide some problems which won't be discussed at this point. \newline
-As a final conclusion, on a theoretical level, the initial problem doesn't sound really super complex. But once we factor in the practical part the difficulty level rises significantly. All in all this means the result of this study is quite satisfying once it's viewed from a objective standpoint.
+As a final conclusion, on a theoretical level, the initial problem doesn't sound really super complex. But once we factor in the practical part the difficulty level rises significantly. All in all this means the result of this study is quite satisfying once it's viewed from an objective standpoint.
 \appendices
 
 % can use a bibliography generated by BibTeX as a .bbl file
