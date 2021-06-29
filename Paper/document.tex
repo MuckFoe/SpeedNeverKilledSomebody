@@ -10,6 +10,7 @@
 \usepackage{listings}
 \usepackage{color}
 \usepackage{float}
+\usepackage{caption}
 
 
 \usepackage[utf8]{inputenc}
@@ -125,6 +126,7 @@ Basically the search space gets reduced.
 \begin{figure}[h!]
 	\centering
 	\includegraphics[scale=0.5]{epipolarGeometry.png}
+	\captionsetup{justification=centering}
 	\caption{Epipolar geometry}
 \end{figure}
 This is done by projecting the line LL between the points OL(left camera), XL(projection of point X in the left frame) and X(being the target 3D point) as ECR on our right picture, crossing the point XR(projection of point X in the right frame). The same on the left picture, project the line LR between the points OR(right camera), XR and X, crossing the point XL as ECL. The centers of both cameras get also project to there significant other frame.
@@ -138,6 +140,7 @@ Cameras are projecting a three dimensional object to a two dimensional image. Th
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.8]{intrinsicMatrix.png}
+	\captionsetup{justification=centering}
 	\caption{Intrinsic Matrix}
 \end{figure}
 \noindent
@@ -145,6 +148,7 @@ We can represent these internal parameters as an upper triangular matrix K. This
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.4]{extrinsicMatrix.png}
+	\captionsetup{justification=centering}
 	\caption{Extrinsic Matrix}
 \end{figure}
 \noindent
@@ -152,6 +156,7 @@ The external parameters are represented by an 3x3 rotation matrix, that indicate
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.7]{projectionMatrix.png}
+	\captionsetup{justification=centering}
 	\caption{Projection Matrix}
 \end{figure}
 \noindent
@@ -163,6 +168,7 @@ A camera lens always has some kind of curvature. This curvature is also visible 
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.3]{distortion.jpg}
+	\captionsetup{justification=centering}
 	\caption{Distortion types}
 \end{figure}
 \noindent
@@ -247,6 +253,7 @@ This can be done using specific algorithms, in this case the Block Matching Algo
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{bma.png}
+	\captionsetup{justification=centering}
 	\caption{Visualization of the Block Matching Algorithm working on input and output image}
 \end{figure}
 \noindent
@@ -271,6 +278,7 @@ To further improve those parameters, an user interface was build to change the v
 	\centering
 	\includegraphics[scale=0.5]{calibrateUI.png}
 	\label{UI}
+	\captionsetup{justification=centering}
 	\caption{UI for calibrating all parameters of the Block Matching Algorithm}
 \end{figure}
 \noindent
@@ -278,45 +286,51 @@ In the UI are many different parameters to tune. Also there is the option to sav
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{disparityMap.png}
+	\captionsetup{justification=centering}
 	\caption{Resulting Disparity Map after calibration without filtering}
 \end{figure}
-\noindent
-On the left the disparity map and on the right the original left side image.
+\noindent On the left the disparity map and on the right the original left side image.
 
 \subsection{Depth Map}
 \noindent
-At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function 'reprojectImageTo3D', which takes the disparity map as well as the Q matrix we computed during the rectification process to compute a depth map.
-Alternatively we can compute the corresponding distance to every disparity value with the inverse of this value. The relation between depth and disparity is non-linear, but by using the inverse this relation becomes linear. The equation for this is the following: 
-\begin{equation}
-	Distance = \frac{M}{Disparity}
-\end{equation}
-With M being the product of the focal length f and the baseline B of our camera. \newline
-In this practical scenario, we assume that some of our values may have a small error. This might be because the disparity values are not as exact as we expected them to be, or because the camera has some construction issues. Because of this, we don´t just throw in our values for B and f, but find our value M by trying, similarly to the UI used to find the optimal parameters for the Blockmatching Algorithm ~\ref{UI}. 
+\noindent At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function 'reprojectImageTo3D', which takes the disparity map as well as the Q matrix we computed during the rectification process to compute a depth map.
+Alternatively we can compute the distance with the inverse disparity-value. The relation between depth and disparity is non-linear, but by using the inverse this relation becomes linear. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{ratios.png}
-	\caption{}
+	\captionsetup{justification=centering}
+	\caption{Relation between Depth and Disparity(left) and Inverse Disparity(right)}
 \end{figure}
+\noindent The equation for this is the following: 
+\begin{equation}
+	Distance = \frac{M}{Disparity}
+\end{equation}
+\noindent With M being the product of the focal length f and the baseline B of our camera. \newline
+In this practical scenario, we assume that some of our values may have a small error. This might be because the disparity values are not as exact as we expected them to be, or because the camera has some construction issues. Because of this, we don´t just throw in our values for B and f, but find our value M by trying, similarly to the UI used to find the optimal parameters for the Blockmatching Algorithm ~\ref{UI}. 
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{distanceCalcRegression.png}
+	\captionsetup{justification=centering}
 	\caption{Depth map calculated with blue color filter and a computed distance based on a regression function}
 \end{figure}
 
-On top of this the result will get rounded to two decimals. In Figure 9 we can see this working on a sample video. The box is placed at distance of 1.50m and the output of the whole function is 1.49m. This is a pretty good result.
+\noindent In the above picture we can see this working on a sample video. The box is placed at distance of 1.50m and the output of the whole function is 1.49m. This is a pretty good result.
+
 \subsection{Object Detection}
-\noindent For objectdetection our first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparitymap being an unprecise projection of the real picture, we endet up basic patterns in the pictures being detected as seen in ~\ref{tracking}.
+\noindent For object detection our first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparitymap being an unprecise projection of the real picture, we endet up with basic patterns in the pictures being detected, as seen on the right picture:
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{handstand_comparison.png}
 	\label{tracking}
+	\captionsetup{justification=centering}
 	\caption{Left: Detection on original picture Right: Detection on disparity picture }
 \end{figure}
- So we used the original grayscale picture of one of our cameras to detect the objects. This was done by creating a mask that substrackts our unmoving areas of the picture, leaving uns with only our object we want to track.
+\noindent So we used the original grayscale picture of one of our cameras to detect the objects. This was done by creating a mask that substrackts our unmoving areas of the picture, leaving uns with only our object we want to track, using the following openCV function:
 \begin{python}
 back_sub = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=25, detectShadows=False)
 \end{python}
-This works by comparing a history of frames and declaring its unchanged pictures as background. \newline
+\noindent This works by comparing a history of frames and declaring its unchanged pixels as background. \newline
 next countours with findContours()
 nextbiggest contour draw box and centerpoint
 
