@@ -81,7 +81,7 @@
 	% Do not put math or special symbols in the title.
 	\title{Distance and Movement Measurement of an Object\\ based on Stereo Images}
 
-	\author{Lennard~Rose,~5110000,~FHWS
+	\author{Lennard~Rose,~5118054,~FHWS
 		Moritz~Zeitler,~5118094,~FHWS% <-this % stops a space
 	}
 	% The paper headers
@@ -123,7 +123,7 @@ When capturing a 3D object in an image, the objects gets projected from a 3D spa
 With 2 Cameras, this is possible by comparing the left and the right image, called Triangulation.
 On a abstract level, if one takes a picture with two cameras both of the x axes are exactly on the same level (depending on the mounting). For points on the y axes this isn't certain. The solve this problem there is the possibility to use epipolar geometry and stereoscopy.
 Basically the search space gets reduced.
-\begin{figure}[h!]
+\begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{epipolarGeometry.png}
 	\captionsetup{justification=centering}
@@ -330,10 +330,29 @@ In this practical scenario, we assume that some of our values may have a small e
 \begin{python}
 back_sub = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=25, detectShadows=False)
 \end{python}
-\noindent This works by comparing a history of frames and declaring its unchanged pixels as background. \newline
-next countours with findContours()
-nextbiggest contour draw box and centerpoint
-
+\noindent This works by comparing a history of frames and declaring its unchanged pixels as background. Our result is a mask only containing our potential objects we want to track. On this, we perform a couple of filters:
+\begin{python}
+# Close dark gaps in foreground objects
+mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+# Remove noise
+mask = cv2.medianBlur(mask, 5) 
+# Threshold the image to make it either black or white
+_, mask = cv2.threshold(mask,127,255,cv2.THRESH_BINARY)
+\end{python}
+\noindent After we prepared our image, we now apply openCVs findContours() function to outline our objects. 
+\begin{python}
+contours, hierarchy = cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+\end{python}
+RETR\_TREE computes a full hirarchy list for shapes inside other shapes. CHAIN\_APPROX\_SIMPLE on the other hand removes all redundant points of our contourlines, leaving us with the necessary minimum.
+\begin{python}
+x,y,w,h = cv2.boundingRect(cnt)
+cv2.rectangle(grayL,(x,y),(x+w,y+h),(0,255,0),3)
+# Draw circle in the center of the bounding box
+x2 = x + int(w/2)
+y2 = y + int(h/2)
+cv2.circle(grayL,(x2,y2),4,(0,255,0),-1)
+\end{python}
+\noindent Next step is to draw a bounding rectangle around our object and a point in its center. 
 \subsection{Object Tracking}
 \noindent
 \section{Measurements}
