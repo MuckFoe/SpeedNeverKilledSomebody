@@ -352,7 +352,8 @@ x2 = x + int(w/2)
 y2 = y + int(h/2)
 cv2.circle(grayL,(x2,y2),4,(0,255,0),-1)
 \end{python}
-\noindent Next step is to draw a bounding rectangle around our object and a point in its center. 
+\noindent Next step is to draw a bounding rectangle around the object and a point in its center. This points disparity value is used for the distance calibration. This might lead to error, if the object is for example ring-shaped, but taking the average of all the objects disparity-values led to big inacurracies. A way to optimize this was not further pursued. \newline
+This rectangle and point were also used to prevent jumps caused by the inacurracy of the contour-algorithm. Only Objects with their centerpoint within the rectangle-coordinates of the previous frames object were taken into consideration, otherwise skipped. 
 \subsection{Object Tracking}
 \noindent
 \section{Measurements}

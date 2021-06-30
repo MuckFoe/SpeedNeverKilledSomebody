@@ -17,6 +17,13 @@ Q = [[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -2.93386066e+02],
  [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  7.69477289e+02],
  [ 0.00000000e+00,  0.00000000e+00,  3.47341446e-01, -0.00000000e+00]]
 
+previous_x_left = None
+previous_x_right = None
+previous_y_upper = None
+previous_y_lower = None
+
+points = []
+
 
 
 # Create the background subtractor object
@@ -48,6 +55,33 @@ def compute_distance_m_matrix(x, y):
     Distance = M / (average)
     return np.around(Distance, decimals=2)   
 
+
+def compute_direction(x_new, y_new, distance):
+    direction = ""
+
+    if len(points) > 3:  
+        average_x = ( points[-1][0] + points[-2][0] + points[-3][0] ) / 3
+        average_y =( points[-1][1] + points[-2][1] + points[-3][1] ) / 3
+        average_distance = ( points[-1][2] + points[-2][2] + points[-3][2] ) / 3
+
+        if x_new < average_x - 5:
+            direction += "left "
+        if x_new > average_x + 5:
+            direction += "right "
+        if y_new < average_y - 5:
+            direction += "up "          
+        if y_new > average_y + 5:
+            direction += "down "        
+        if distance < average_distance:
+            direction += "closer "    
+        if distance > average_distance:
+            direction += "away "    
+    
+    return direction
+
+        
+
+
 def coords_mouse_disp(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDBLCLK:
         print("Distance = %.2f m" % compute_distance_m_matrix( x, y))
@@ -70,6 +104,12 @@ def create_depth_map():
 
 
 def track_object(frame):
+    global previous_x_left
+    global previous_x_right
+    global previous_y_lower
+    global previous_y_upper
+    global points
+
     # Use every frame to calculate the foreground mask and update
     # the background
     fg_mask = back_sub.apply(frame)
@@ -99,16 +139,31 @@ def track_object(frame):
     cnt = contours[max_index]
     cv2.drawContours(grayL, cnt, -1, (255,0,0), thickness=2)
     x,y,w,h = cv2.boundingRect(cnt)
-    cv2.rectangle(grayL,(x,y),(x+w,y+h),(0,255,0),3)
-    # Draw circle in the center of the bounding box
-    x2 = x + int(w/2)
-    y2 = y + int(h/2)
-    cv2.circle(grayL,(x2,y2),4,(0,255,0),-1)
+    centerpoint_x = x + int(w/2)
+    centerpoint_y = y + int(h/2)
+    distance = compute_distance_m_matrix(centerpoint_x, centerpoint_y)
+
+
+    # this fucked up if clause just checks if centerpoint is within the boundary of the previous frames rectangle and the distance change ist not more than +-20
+    if centerpoint_x > previous_x_left and centerpoint_x < previous_x_right and centerpoint_y > previous_y_upper and centerpoint_y < previous_y_lower: 
+        if len(points) == 0 or (distance > 0 and ((points[-1][2]) < (distance + 0.20) and (points[-1][2]) > (distance - 0.20 ))):
+            points.append([centerpoint_x, centerpoint_y, distance])
+            cv2.rectangle(grayL,(x,y),(x+w,y+h),(0,255,0),3)
+            # Draw circle in the center of the bounding box
+            cv2.circle(grayL,(centerpoint_x,centerpoint_y),4,(0,255,0),-1)   
+            # Print the centroid coordinates (we'll use the center of the
+            # bounding box) on the image
+            text_depth = "depth: " + str(compute_distance_m_matrix(centerpoint_x, centerpoint_y)) + "m"
+            cv2.putText(grayL, text_depth, (centerpoint_x - 10, centerpoint_y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2) 
+            text_direction = "moving: " + str(compute_direction(centerpoint_x, centerpoint_y, distance))
+            cv2.putText(grayL, text_direction, (centerpoint_x + 10, centerpoint_y + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2) 
+
+    previous_x_left = x
+    previous_x_right = x + w
+    previous_y_upper = y
+    previous_y_lower = y + h    
  
-    # Print the centroid coordinates (we'll use the center of the
-    # bounding box) on the image
-    text = "depth: " + str(compute_distance_m_matrix(x2, y2)) + "m"
-    cv2.putText(grayL, text, (x2 - 10, y2 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
 
 def append_ply_array(verts, colors):
     global accumulated_verts
@@ -195,12 +250,18 @@ Right_Stereo_Map_y = cv_file.getNode("Right_Stereo_Map_y").mat()
 M = cv_file.getNode("M").real() #box .343 handstand .32
 cv_file.release()
 
+previous_x_left = 0
+previous_x_right = CamL.get(cv2.CAP_PROP_FRAME_WIDTH) - 1
+previous_y_upper = 0
+previous_y_lower = CamL.get(cv2.CAP_PROP_FRAME_HEIGHT) -1
+
 counter = 0
 
 while True:
     # Start Reading Camera images
     retR, frameR = CamR.read()
     retL, frameL = CamL.read()
+
     if retL and retR:
         # Rectify the images on rotation and alignement
         # Rectify the image using the kalibration parameters founds during the initialisation
