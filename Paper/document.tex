@@ -113,24 +113,23 @@
 	\section{Introduction}
 \label{sec:einfuehrung}
 \noindent
-From a high level standpoint the human eye is a very simple complex. It enables us to see things, even in color. But if we go deeper there is much more to our sight. For example we can see depth, which is very complex as a concept. This is based on the human eye having to different point-of-views. In this project the so called Stereo-Vision, will be translated to a computational level. To establish this we use a stereo camera setup to take photos/videos, create a depth map and try to compute the distance and movement of an object. The following chapters will describe this in a step by step fashion, starting with the theory behind it and the implementation afterwards.
+From a high level standpoint the human eye is a very simple concept. It enables us to see things, even in color. But if we go deeper there is much more to our sight. For example we can see depth, which is very complex. This is based on the human eye having to different point-of-views. In this project this so called Stereo-Vision, will be translated to a computational level. To establish this, we use a stereo camera setup to take photos/videos, create a depth map and try to compute the distance and movement of an object. The following chapters will describe this in a step by step fashion, starting with the theory behind it and the implementation afterwards.
 \section{Prerequisites}
-\noindent The initial idea is to run this Stereo-Vision on some kind of self driving vehicle, in our case a JetBot AI Kit\cite{jetbot_wiki}. This JetBot AI Kit is based on a NVIDIA Jetson Nano Developer Kit\cite{nvidia_jetson}. Mounted on this Bot is a the IMX219-83 Stereo Camera\cite{cam_wiki} of waveshare. As already stated the initial idea was to develop a system that's running directly on the bot. After assessment of the provided resources and some in depth testing the decision was made to not use the bot for running our applications since it would impede development tremendously. This means all data used in the project was recorded using the bot, but all computation and programming was done on other machines. Obviously this means that the resulting pipeline should be deployable to the bot but there are some severe driver problems that stop this from happening.
+\noindent The initial idea is to run this Stereo-Vision on some kind of self driving vehicle, in our case the JetBot AI Kit\cite{jetbot_wiki}. This JetBot AI Kit is based on a NVIDIA Jetson Nano Developer Kit\cite{nvidia_jetson}. Mounted on this Bot is a the IMX219-83 Stereo Camera\cite{cam_wiki} of Waveshare. As already stated, the initial idea was to develop a system that's running directly on the bot. After assessment of the provided resources and some in depth testing, the decision was made to not use the bot for running our applications since it would impede development tremendously. This means all data used in the project was recorded using the bot, but all computation and programming was done on other machines. This means that the resulting pipeline should be deployable to the bot but there are some severe driver problems that stop this from happening.
 \section{Stereoscopy}
 \noindent
-First of all, to visualize the idea behind stereoscopy, one can use the human eye as an example. Focusing on an object and alternately closing one eye, one can observe the object moving. The closer the object, the more the object will move. In a nutshell this is the whole concept behind stereoscopy which will be explained in depth in this paper.
-When capturing a 3D object in an image, the objects gets projected from a 3D space to a 2D (planar) projection space, losing all its depth information. This is called the Planar Projection. The question now is, how to get back the depth information from this 2D space.
+First of all, to visualize the idea behind stereoscopy, one can use the human eye as an example. Focusing on an object and alternately closing one eye, one can observe the focused  object moving. The closer the object, the more the object will move. In a nutshell this is the whole concept behind stereoscopy which will be explained in depth in this paper.
+When capturing a 3D object in an image, the objects gets projected from a 3D space to a 2D (planar) projection space, losing all its depth information. This is called the Planar Projection. The question is, how to get back the depth information from this 2D space.
 With 2 Cameras, this is possible by comparing the left and the right image, called Triangulation.
-On a abstract level, if one takes a picture with two cameras both of the x axes are exactly on the same level (depending on the mounting). For points on the y axes this isn't certain. The solve this problem there is the possibility to use epipolar geometry and stereoscopy.
-Basically the search space gets reduced.
+On a abstract level, if one takes a picture with two cameras both of the x axes are, or better can be, exactly on the same level (depending on the mounting). For points on the y axes this isn't certain. To solve this problem there is the possibility to use epipolar geometry and stereoscopy.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{epipolarGeometry.png}
 	\captionsetup{justification=centering}
 	\caption{Epipolar geometry}
 \end{figure}
-This is done by projecting the line LL between the points OL(left camera), XL(projection of point X in the left frame) and X(being the target 3D point) as ECR on our right picture, crossing the point XR(projection of point X in the right frame). The same on the left picture, project the line LR between the points OR(right camera), XR and X, crossing the point XL as ECL. The centers of both cameras get also project to there significant other frame.
-With this, the searchspace got reduced of a corresponding point to compute our disparity from to a single line, ECL respectively ECR (this is called an epipolar constraint).EL and ER is the projection of one camera onto its significant other cameras pov. These points are called epipoles. Together with LL and LR this baseline forms the epipolar plane (blue in figure 5). All this information can be represented by the Fundamental matrix of the image, which can be calculated with the projected points and the projection matrices of the cameras. Further mathematical description can be found in the book \emph{Multiple View Geometry in Computer Vision}\cite{hartley_zisserman_2004}, but won't be discussed any further at this point.
+\noindent This is done by projecting the line LL between the points OL(left camera lens), XL(projection of point X in the left frame) and X(being the target 3D point). This line gets projected as ECR to the right picture, crossing the point XR(projection of point X in the right frame). The same happens with the left picture, create the line LR between the points OR(right camera), XR and X, projecting the result to the left frame crossing the point XL as ECL. The centers of both cameras get also project to there significant other frame. \newline
+With this, the searchspace got reduced of a corresponding point to compute our disparity from to a single line, ECL or ECR respectively (this is called an epipolar constraint).EL and ER are the projections of one camera onto its significant other cameras pov. These points are called epipoles. Together with LL and LR this baseline forms the epipolar plane (blue in figure 5). All this information can be represented by the Fundamental matrix of the image, which can be calculated with the se projected points and the projection matrices of the cameras. Further mathematical description can be found in the book \emph{Multiple View Geometry in Computer Vision}\cite{hartley_zisserman_2004}, but won't be discussed any further at this point.
 \section{Workflow}
 \noindent
 This chapter contains a detailed theoretical and practical description of each individual step in the workflow.
@@ -164,12 +163,12 @@ Together these form the 3x4 Projection Matrix. This matrix and the 3D-coordinate
 This Calibration consists of two steps removing of Distortion as well as rectifying the images\cite{ImageRectification}.
 \subsubsection{Distortion}
 \noindent
-A camera lens always has some kind of curvature. This curvature is also visible in an image taken with this lens. This is called distortion. There are many different types of distortion which can be seen in figure 4.
+A camera lens always has some kind of curvature. This curvature is also visible in an image taken with this lens. This is called distortion. There are many different types of distortion which can be seen in figure 5.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.3]{distortion.jpg}
 	\captionsetup{justification=centering}
-	\caption{Distortion types}
+	\caption{Different types of distortion}
 \end{figure}
 \noindent
 To remove this distortion we take pictures of a chessboard. OpenCV, the package we use to do all calibration steps, can easily detect key points using this chessboard pattern. This is based on the big difference in pixel values between white and black. In combination with the size of the squares as well as the amount of the squares, OpenCV is able to create a calibration matrix removing the distortion.\newline
@@ -191,13 +190,13 @@ cv2.cornerSubPix(inputImage,
 		criteria)
 \end{python}
 The 'cornerSubPix' of openCV refines the corner locations \cite{forstner} of the checkboard.
-All results of  the previous steps are saved in a list to cache them for now. With these lists we can calibrate a single camera:
+All results of the previous steps are saved in a list, which caches them for future use. With these lists we can calibrate a single camera:
 \begin{python}
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(object_pts,
 						   img_pts,
 						   img.shape[::-1], None, None)
 \end{python}
-Feeding these points as well as the shape of the image into the calibrate Camera function delivers the intrinsic and extrinsic parameter.
+Feeding these points as well as the shape of the image into the calibrate Camera function results inthe computation of the intrinsic and extrinsic parameter.
 These parameters are stored inside the mtx variable. Also we get the overall RMS re-projection error in ret and the distortion coefficients. Rvecs\cite{DBLP} and tvecs are rotational and translation vectors, which aren't used in this system and won't be described further.
 On a high level openCV executes the global Levenberg-Marquardt optimization algorithm to minimize the reprojection error, that is, the total sum of squared distances between the observed feature points imagePoints and the projected (using the current estimates for camera parameters and the poses) object points objectPoints\cite{calibrateCamera}.
 With these matrices we can now compute a new optimal matrix based on these parameters.
@@ -210,7 +209,7 @@ new_mtx, roi = cv2.getOptimalNewCameraMatrix(mtx,
 As a result the function returns a new optimal intrinsic camera matrix. The function also returns a valid pixel region which outlines a region of all-good-pixels in the undistorted image. These matrices and results will be later used to undistort and rectify images coming from our camera for better results while computing the disparity and depth map.
 \subsubsection{Rectification}
 \noindent
-With image rectification, the goal is to project the two different images taken by the camera onto a common image plane. Through this process we make sure that the individual lines of both images are on the same level, speaking on a very high level. This means the epipolarlines are calibrated to be exactly horizontal, which helps finding the correspondence of a point in both of the stereo pictures.
+With image rectification, the goal is to project the two different images taken by the camera onto a common image plane. Through this process we make sure that the individual lines of both images are on the same level ()speaking on a very high level). This means the epipolarlines are calibrated to be exactly horizontal, which helps finding the correspondence of a point in both of the stereo pictures.
 For this step we need the previous calibration matrices for both of our cameras as well as pictures from both cameras at a similar time containing the chessboard to compute the rectification. Through this computation we get:
 \begin{enumerate}
 	\item essential matrix
@@ -244,7 +243,7 @@ rect_l, rect_r, proj_mat_l, proj_mat_r, Q, roiL, roiR = cv2.stereoRectify(new_mt
 										Trns,
 										rectify_scale, (0, 0))
 \end{python}
-Once again all previous results are input for the function. The function results in two rectification transform matrices, which brings points given in the unrectified camera's coordinate system to points in the rectified camera's coordinate system. Also the projection matrix, in the now recitfied coordinate system of the camera, which projects points into the camera image.
+Once again all previous results are input for the function. The function results in two rectification transform matrices, which brings points given in the unrectified camera's coordinate system to points in the rectified camera's coordinate system.
 
 \subsection{Disparity Map}
 \noindent
@@ -257,10 +256,10 @@ This can be done using specific algorithms, in this case the Block Matching Algo
 	\caption{Visualization of the Block Matching Algorithm working on input and output image}
 \end{figure}
 \noindent
-Figure 6 displays the method the algorithm implements. Input is one pixel, or in this case a small window of pixels, which makes the algorithm more resilient. With the input the algorithm searches the most similar neighbor in the corresponding stereo picture. In this case the right image is the input, with the green square the search window. The algorithm searches for its corresponding window on the left picture. The best match is visualized by the green window the second best by the red window.
+Figure 6 displays the method the algorithm implements. Input is one pixel, or in this case a small window of pixels, which makes the algorithm more resilient. With the input the algorithm searches the most similar neighbor in the corresponding stereo picture. In this case the right image is the input, with the green square as the search window. The algorithm searches for its corresponding window on the left picture. The best match is visualized by the green window, the second best by the red window.
 On a theoretical level the algorithm searches through the image line by line to find the best match.
 This can be done in with different metrics, for example absolute or normalized differences. The algorithm searches for the least differences to determine correspondence. However, the algorithm tends to find multiple pairs of corresponding points due to repeating textures or similar occurrences.
-In python the algorithm is implemented as a class which needs to be instantiated. To be more precise the implementation used in this project uses a slightly more advanced\cite{SGBM} but follows the same principle.
+In python the algorithm is implemented as a class which needs to be instantiated. To be more precise, the implementation used in this project is slightly more advanced\cite{SGBM} but follows the same principle.
 \begin{python}
 stereo = cv2.StereoSGBM_create(minDisparity=min_disp,
 			       numDisparities=num_disp,
@@ -273,7 +272,7 @@ stereo = cv2.StereoSGBM_create(minDisparity=min_disp,
 			       P2=32*3*window_size**2)
 \end{python}
 Important are the different options we supply to the SGBM class. The block size parameter supplies the window size for the algorithm. The disparity amount, which has a minimum and a maximum, specifies at which range a disparity match is acceptable. Speckleand P1 and P2 are filtering algorithms to smooth the output\cite{stereoSGBM}, again we skip further explanation.
-To further improve those parameters, an user interface was build to change the values on the fly.
+To improve those parameters, an user interface was build to change the values on the fly.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{calibrateUI.png}
@@ -282,7 +281,7 @@ To further improve those parameters, an user interface was build to change the v
 	\caption{UI for calibrating all parameters of the Block Matching Algorithm}
 \end{figure}
 \noindent
-In the UI are many different parameters to tune. Also there is the option to save the parameters, it isn't currently possible to use a button in openCV thus there is a slider which produces a config.json.The result can look something like Figure 8.
+In the UI are many different parameters to tune. Also there is the option to save the parameters. It isn't currently possible to use a button in openCV thus there is a slider which produces a config.json.The result can look something like Figure 8.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{disparityMap.png}
@@ -293,8 +292,8 @@ In the UI are many different parameters to tune. Also there is the option to sav
 
 \subsection{Depth Map}
 \noindent
-\noindent At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function 'reprojectImageTo3D', which takes the disparity map as well as the Q matrix we computed during the rectification process to compute a depth map.
-Alternatively we can compute the distance with the inverse disparity-value. The relation between depth and disparity is non-linear, but by using the inverse this relation becomes linear. 
+\noindent At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function 'reprojectImageTo3D', which takes the disparity map as well as the Q matrix computed  previously during the rectification process to compute a depth map.
+Alternatively computation of the distance with the inverse disparity-value is possible. The relation between depth and disparity is non-linear, but by using the inverse this relation becomes linear. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{ratios.png}
@@ -306,7 +305,7 @@ Alternatively we can compute the distance with the inverse disparity-value. The 
 	Distance = \frac{M}{Disparity}
 \end{equation}
 \noindent With M being the product of the focal length f and the baseline B of our camera. \newline
-In this practical scenario, we assume that some of our values may have a small error. This might be because the disparity values are not as exact as we expected them to be, or because the camera has some construction issues. Because of this, we don´t just throw in our values for B and f, but find our value M by trying, similarly to the UI used to find the optimal parameters for the Blockmatching Algorithm ~\ref{UI}. 
+In this practical scenario, the assumption was made that some of these values may have a small error. This might be because the disparity values are not as exact as expected, or because the camera has some internal calibration or construction issues. Because of these issues, the  M value isn't just computed. Simirlaly to the UI used to find the optimal parameters for the Blockmatching Algorithm ~\ref{UI}, the M parameter gets sort of calibrated as well. 
 
 \begin{figure}[H]
 	\centering
@@ -315,10 +314,10 @@ In this practical scenario, we assume that some of our values may have a small e
 	\caption{Depth map calculated with blue color filter and a computed distance based on a regression function}
 \end{figure}
 
-\noindent In the above picture we can see this working on a sample video. The box is placed at distance of 1.50m and the output of the whole function is 1.49m. This is a pretty good result.
+\noindent In the above picture you can see this working on a sample video. The box is placed at distance of 1.50m and the output of the whole function is 1.49m. This is a pretty good result.
 
 \subsection{Object Detection}
-\noindent For object detection our first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparitymap being an unprecise projection of the real picture, we endet up with basic patterns in the pictures being detected, as seen on the right picture:
+\noindent For object detection the first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparity map being an unprecise projection of the real picture, this algorithm ended up detecting only unusable patterns:
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{handstand_comparison.png}
@@ -326,11 +325,11 @@ In this practical scenario, we assume that some of our values may have a small e
 	\captionsetup{justification=centering}
 	\caption{Left: Detection on original picture Right: Detection on disparity picture }
 \end{figure}
-\noindent So we used the original grayscale picture of one of our cameras to detect the objects. This was done by creating a mask that substrackts our unmoving areas of the picture, leaving uns with only our object we want to track, using the following openCV function:
+\noindent To solvee this problem the original grayscale picture of one of the cameras was used to detect the objects. This was done by creating a mask that substrackts the unmoving areas of the picture, leaving only the targeted object. This was done by using the following openCV function:
 \begin{python}
 back_sub = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=25, detectShadows=False)
 \end{python}
-\noindent This works by comparing a history of frames and declaring its unchanged pixels as background. Our result is a mask only containing our potential objects we want to track. On this, we perform a couple of filters:
+\noindent The  'createBackgroundSubtractorMOG2' function works by comparing a history of frames and declaring its unchanged pixels as background. The result is a mask only containing the potential objects that should be tracked. On this, some filtering is performed:
 \begin{python}
 # Close dark gaps in foreground objects
 mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
@@ -339,11 +338,11 @@ mask = cv2.medianBlur(mask, 5)
 # Threshold the image to make it either black or white
 _, mask = cv2.threshold(mask,127,255,cv2.THRESH_BINARY)
 \end{python}
-\noindent After we prepared our image, we now apply openCVs findContours() function to outline our objects. 
+\noindent After preparing the images, applying openCVs findContours() function, the objects get outlined.
 \begin{python}
 contours, hierarchy = cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2:]
 \end{python}
-RETR\_TREE computes a full hirarchy list for shapes inside other shapes. CHAIN\_APPROX\_SIMPLE on the other hand removes all redundant points of our contourlines, leaving us with the necessary minimum.
+RETR\_TREE computes a full hirarchy list for shapes inside other shapes. CHAIN\_APPROX\_SIMPLE on the other hand removes all redundant points of the contourlines, leaving only the necessary minimum.
 \begin{python}
 x,y,w,h = cv2.boundingRect(cnt)
 cv2.rectangle(grayL,(x,y),(x+w,y+h),(0,255,0),3)
@@ -377,7 +376,7 @@ For testing purposes the initial idea is an event based system. On double-click 
 		1.4             & 1.42              \\ \hline
 	\end{tabular}
 \end{table}
-\noindent The mean squared error of these observations is 0.00034. The closer the value to 0 the better the result, meaning that the computed distance is extremely good. But this needs to be put into perspective, meaning this test was performed under laboratory conditions which should result in this kinda of perfection.
+\noindent The mean squared error of these observations is 0.00034. The closer the value to 0 the better the result, meaning that the computed distance is extremely good. But this needs to be put into perspective, meaning this test was performed under laboratory conditions which should result in this kind of perfection.
 \section{Conclusion}
 \noindent The most important conclusion of this study is quite sobering. With the experience gained from working with the system, there are way too many factors that influence the result. Even more important those factors or variables are not always controllable. This means from time to time, results from some functions are more or less arbitrary. Especially the calibration of the stereo cameras is quite a difficult task. Most of the time the result of openCV calibration, meaning removing of Distortion as well as rectifying images, isn't comprehensible. A big variable are the pictures, and their quality, as a consequence this means the camera used is quite important. In our case the cameras are designed for this purpose, but this doesn't mean the cameras don't have problems. Basically the calibration process was done by try and error. This means the calibration is not as easy as most documentations suggest. By this a the following algorithms, for example computation of distance, are inferred by this, lets call it blur. \newline
 If those problems are left aside the result for distance as well as speed are quite satisfying. With a better setup that doesn't depend as much on calibration, for example usage of a Intel RealSense camera could enhance the result enormously. And almost as important, would ease up development since the camera modul for JetBot in combination with the nVidia Jetson Nano development board does also provide some problems which won't be discussed at this point. \newline
