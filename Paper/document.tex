@@ -321,7 +321,25 @@ Alternatively computation of the distance with the inverse disparity-value is po
 \end{equation}
 \noindent With M being the product of the focal length f and the baseline B of the camera. \newline
 In this practical scenario, the assumption was made that some of these values may have a small error. This might be because the disparity values are not as exact as expected, or because the camera has some internal calibration or construction issues. Because of these issues, the  M value isn't just computed. Simirlaly to the UI used to find the optimal parameters for the Blockmatching Algorithm ~\ref{UI}, the M parameter gets sort of calibrated as well. 
-
+\subsubsection{Measurement}
+For testing purposes the initial idea is an event based system. On double-click an openCV event gets triggered, containing a x and y position of the mouse click. These values get enhanced to a window, all disparity values in this window get added up to compute an average. With this basic function we can encapsulate computing the distance. This results in following precision:
+\begin{table}[H]
+	\begin{tabular}{|l|l|}
+		\hline
+		actual distance & computed distance \\ \hline
+		0.5             & 0.5               \\ \hline
+		0.5             & 0.5               \\ \hline
+		0.6             & 0.61              \\ \hline
+		0.6             & 0.6               \\ \hline
+		1.2             & 1.18              \\ \hline
+		1.2             & 1.18              \\ \hline
+		1.3             & 1.28              \\ \hline
+		1.3             & 1.31              \\ \hline
+		1.4             & 1.44              \\ \hline
+		1.4             & 1.42              \\ \hline
+	\end{tabular}
+\end{table}
+\noindent The mean squared error of these observations is 0.00034. The closer the value to 0 the better the result, meaning that the computed distance is extremely good. But this needs to be put into perspective, meaning this test was performed under laboratory conditions which should result in this kinda of perfection.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{distanceCalcRegression.png}
