@@ -23,6 +23,9 @@ previous_y_upper = None
 previous_y_lower = None
 
 points = []
+directions = []
+awaycounter = 0
+elsecounter = 0
 
 
 
@@ -57,6 +60,8 @@ def compute_distance_m_matrix(x, y):
 
 
 def compute_direction(x_new, y_new, distance):
+    global awaycounter
+    global elsecounter
     direction = ""
 
     if len(points) > 3:  
@@ -76,6 +81,13 @@ def compute_direction(x_new, y_new, distance):
             direction += "closer "    
         if distance > average_distance:
             direction += "away "    
+        directions.append(direction)
+        if "away" in direction:
+            awaycounter += 1
+        else:
+            if direction != "":
+                elsecounter += 1
+
     
     return direction
 
@@ -235,10 +247,10 @@ wls_filter.setSigmaColor(sigma)
 
 CamL = cv2.VideoCapture(
     '..\\..\\CapturedVideos\\samples\\zMovingSampleLeft640x480.avi')
- #   '..\\..\\CapturedVideos\\samples\\sampleLeft.avi')
+   # '..\\..\\CapturedVideos\\samples\\sampleLeft.avi')
 CamR = cv2.VideoCapture(
     '..\\..\\CapturedVideos\\samples\\zMovingSampleRight640x480.avi')
-  #  '..\\..\\CapturedVideos\\samples\\sampleRight.avi')
+   # '..\\..\\CapturedVideos\\samples\\sampleRight.avi')
 
 # Reading the mapping values for stereo image rectification
 cv_file = cv2.FileStorage(
@@ -342,7 +354,7 @@ while True:
         counter += 1
 
         # End the Programme
-        #if counter == 83:
+        #if counter == 85:
         if cv2.waitKey(1) & 0xFF == ord(' '):
             cv2.imwrite('c1.png', grayL)
             print('screenshot taken ' +  str(counter))
@@ -352,9 +364,10 @@ while True:
         print('no video')
         CamL.set(cv2.CAP_PROP_POS_FRAMES, 0)
         CamR.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        print(directions)
+        print("away: " + str(awaycounter) + " else: " + str(elsecounter))
 # Save excel
 # wb.save("data4.xlsx")
-
 # Release the Cameras
 CamR.release()
 CamL.release()
