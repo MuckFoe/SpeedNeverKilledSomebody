@@ -354,9 +354,16 @@ while True:
         counter += 1
 
         # End the Programme
-        #if counter == 85:
-        if cv2.waitKey(1) & 0xFF == ord(' '):
-            cv2.imwrite('c1.png', grayL)
+        if counter == 85:
+        #if cv2.waitKey(1) & 0xFF == ord(' '):
+            start_point = (0, 250)
+            end_point = (639, 250)
+            color = (0,255,0)
+
+            cv2.line(Left_nice, (start_point), end_point, color, 1)
+            cv2.line(Right_nice, start_point, end_point, color, 1)
+            cv2.imwrite('left.png', Left_nice)
+            cv2.imwrite('right.png', Right_nice)
             print('screenshot taken ' +  str(counter))
             break
 
