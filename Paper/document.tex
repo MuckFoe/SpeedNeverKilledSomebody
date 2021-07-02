@@ -65,6 +65,20 @@
 \usepackage{graphicx}
 \graphicspath{ {./Material/pictures/} }
 
+\makeatletter
+\renewenvironment{abstract}{%
+    \if@twocolumn
+      \section*{\abstractname}%
+    \else %% <- here I've removed \small
+      \begin{center}%
+        {\bfseries \Large\abstractname\vspace{\z@}}%  %% <- here I've added \Large
+      \end{center}%
+      \quotation
+    \fi}
+    {\if@twocolumn\else\endquotation\fi}
+\makeatother
+
+
 
 
 
@@ -111,6 +125,7 @@
 	% As a general rule, do not put math, special symbols or citations
 	% in the abstract or keywords.
 	\begin{abstract}
+   		\normalsize
 		\noindent
 		This paper explains how to compute distance to, and movement of an object with the means of stereo camera vision.
 		Included is the whole workflow consisting of all steps that have to be made to get such a recognition to work. These steps are the hardware setup, all calibration steps, object detection, object tracking and the measurements of the values themselves.
@@ -206,7 +221,8 @@ cv2.cornerSubPix(inputImage, corners, (11, 11), (-1, -1), criteria)
 The 'cornerSubPix' of openCV refines the corner locations \cite{forstner} of the checkboard.
 All results of the previous steps are saved in a list, which caches them for future use. With these lists we can calibrate a single camera:
 \begin{python}
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(object_pts, img_pts, img.shape[::-1], None, None)
+ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(object_pts, img_pts, img.shape[::-1], None, 
+											None)
 \end{python}
 Passing these points as well as the shape of the image into the calibrate Camera function delivers the intrinsic and extrinsic parameter.
 These parameters are stored inside the mtx variable. Also we get the overall RMS re-projection error in ret and the distortion coefficients. Rvecs\cite{DBLP} and tvecs are rotational and translation vectors, which aren't used in this system and won't be described further.
@@ -214,48 +230,47 @@ On a high level openCV executes the global Levenberg-Marquardt optimization algo
 With these matrices we can now compute a new optimal matrix based on these parameters.
 \begin{python}
 h, w = img.shape[:2]
-new_mtx, roi = cv2.getOptimalNewCameraMatrix(mtx,
-				   	     dist,
-				   	     (w, h), 1, (w, h))
+new_mtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
 \end{python}
 As a result the function returns a new optimal intrinsic camera matrix. The function also returns a valid pixel region which outlines a region of all-good-pixels in the undistorted image. These matrices and results will be later used to undistort and rectify images coming from our camera for better results while computing the disparity and depth map.
+
+
+
 \subsubsection{Rectification}
 \noindent
-With image rectification, the goal is to project the two different images taken by the camera onto a common image plane. Through this process we make sure that the individual lines of both images are on the same level ()speaking on a very high level). This means the epipolarlines are calibrated to be exactly horizontal, which helps finding the correspondence of a point in both of the stereo pictures.
+With image rectification, the goal is to project the two different images taken by the camera onto a common image plane. Through this process we make sure that the individual horizontal pixel-lines of both images are on the same level. This means the epipolarlines are calibrated to be exactly horizontal, which helps finding the correspondence of a point in both of the stereo pictures by reducing the searchspace to a horizontal line.
 For this step we need the previous calibration matrices for both of our cameras as well as pictures from both cameras at a similar time containing the chessboard to compute the rectification. Through this computation we get:
 \begin{enumerate}
 	\item essential matrix
 	\item rotational matrix
-	\item translation vector (previously described as extrinsic matrix)
+	\item translation vector (previously described as extrinsic matrix) %wo? nochmal gucken, wäre mir jetzt nicht aufgefallen
 \end{enumerate}
 
 \begin{python}
 retS, new_mtxL, distL, new_mtxR, distR, Rot, Trns, Emat, Fmat = cv2.stereoCalibrate(obj_pts,
-									img_ptsL,
-									img_ptsR,
-									mtxL,
-									distL,
-									mtxR,
-									distR,
-									imgR.shape[::-1],
-									criteria_stereo,
-									flags)
+ 										img_ptsL,
+ 										img_ptsR,
+ 										mtxL, distL,
+ 										mtxR, distR,
+ 										imgR.shape[::-1],
+ 										criteria_stereo,
+ 										flags)
 \end{python}
 The function can also compute the full calibration for each of the cameras but isn't recommended to do so due to the high dimensionality of the parameter space and noise in the input data\cite{stereoCalibrate}. Because of this the individual calibration is done beforehand and gets supplied as an input.
 With these matrices we are able to compute a coordinate representation of a 3D point in one of the cameras using the result matrices as well as the one of the individual camera matrices.
 Similarly to calibrateCamera, the function minimizes the total re-projection error for all the points in all the available views from both cameras. The function returns the final value of the re-projection error.
 Now the goal is to rectify these cameras using stereoRectify:
 \begin{python}
-rect_l, rect_r, proj_mat_l, proj_mat_r, Q, roiL, roiR = cv2.stereoRectify(new_mtxL,
-										distL,
-										new_mtxR,
-										distR,
-										imgL.shape[::-1],
-										Rot,
-										Trns,
-										rectify_scale, (0, 0))
+rect_l, rect_r, proj_mat_l, proj_mat_r, Q, roiL, roiR = cv2.stereoRectify(new_mtxL, 
+ 										distL, 
+ 										new_mtxR, 
+ 										distR,
+ 										imgL.shape[::-1],
+  										Rot, Trns,
+  										rectify_scale,
+ 										(0, 0))
 \end{python}
-Once again all previous results are input for the function. The function results in two rectification transform matrices, which brings points given in the unrectified camera's coordinate system to points in the rectified camera's coordinate system.
+Once again all previous results are input for the function. The function results in two rectification transform matrices, which transfers points from unrectified camera's coordinate system to points in the rectified camera's coordinate system.
 
 \subsection{Disparity Map}
 \noindent
