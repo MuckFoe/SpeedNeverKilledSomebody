@@ -315,20 +315,6 @@ Within the UI there are many different parameters to tune. Also there is the opt
 	\caption{Resulting Disparity Map after calibration without filtering on the left, greyscale left cameras image on the right}
 \end{figure}
 
-
-
-%wo soll das hin?
-\subsubsection{Problems}
-\noindent The results of computer-vision and especially stereo-vision are very prone to environmental factors. During development and research such problems were repeatedly encountered, dramatically affecting the result.
-\begin{enumerate}
-\item Shadows and object borders
-\item Noisy Data
-\item Lighting conditions on the object and on the camera
-\item Reflecting, transparent, identical, textureless surfaces
-\item Disadvantageous hardware
-\item Blur because of motion or missing focus
-\end{enumerate}
-
 \subsection{Depth Map}
 \noindent
 \noindent At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function \emph{reprojectImageTo3D}, which takes the disparity map as well as the Q matrix computed  previously during the rectification process to compute a depth map.
@@ -347,7 +333,7 @@ Alternatively computation of the distance with the inverse disparity-value is po
 In this practical scenario, the assumption was made that some of these values may have a small error. This might be because the disparity values are not as exact as expected, or because the camera has some internal calibration or construction issues. Similarly to the UI used to find optimal parameters for the Blockmatching Algorithm in figure 7, the {\bf M} parameter gets sort of calibrated as well.
 \subsubsection{Measurement}
 \noindent
-For testing purposes the initial idea was an event based system. On double-click an openCV event gets triggered, containing an x and y position of the mouse click. These values get enhanced to a window, all disparity values in this window get added up to compute an average. With this basic function computing the distance can be encapsulated . This results in following precision:
+For testing purposes the initial idea was an event based system. On double-click, an openCV event gets triggered containing an x and y position of the mouse click. These values get enhanced to a window, all disparity values in this window get added up to compute an average. With this basic function computing the distance can be encapsulated. This results in following precision:
 \begin{table}[H]
 	\begin{tabular}{|l|l|}
 		\hline
@@ -373,7 +359,7 @@ For testing purposes the initial idea was an event based system. On double-click
 \end{figure}
 
 \subsection{Object Detection}
-\noindent For object detection the first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparity map being an unprecise and error-prone projection of the real picture, this algorithm ended up detecting only unusable patterns:
+\noindent For object detection the first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparity map being an inaccurate and error-prone projection of the real picture, this algorithm ended up detecting only unusable patterns:
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{handstand_comparison.png}
@@ -398,7 +384,7 @@ _, mask = cv2.threshold(mask,127,255,cv2.THRESH_BINARY)
 \begin{python}
 contours, hierarchy = cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2:]
 \end{python}
-\emph{RETR\_TREE} computes a full hirarchy list for shapes inside other shapes. \emph{CHAIN\_APPROX\_SIMPLE} removes all redundant points of the contourlines, leaving only the necessary minimum.
+\emph{RETR\_TREE} computes a full hierarchy list for shapes inside other shapes. \emph{CHAIN\_APPROX\_SIMPLE} removes all redundant points of the contourlines, leaving only the necessary minimum.
 \begin{python}
 x,y,w,h = cv2.boundingRect(cnt)
 cv2.rectangle(grayL,(x,y),(x+w,y+h),(0,255,0),3)
@@ -434,12 +420,24 @@ This rectangle and point were also used to prevent jumps caused by the inaccurac
 \noindent With the test video being a box moving away from us, an accuracy of 70,5\% was achieved with this simple implementation. Almost all wrong calculated directions were caused by incorrect disparity-values when the box wasn´t moving, altering around the correct value. For example with the box standing 80cm away from the camera, the values tend to jump between 79 and 81cm, causing false directions.
 
 
+\section{Problems}
+\noindent The results of computer-vision and especially stereo-vision are very prone to environmental factors. During development and research such problems were repeatedly encountered, dramatically affecting the result.
+\begin{enumerate}
+	\item Shadows and object borders
+	\item Noisy Data
+	\item Lighting conditions on the object and on the camera
+	\item Reflecting, transparent, identical, textureless surfaces
+	\item Disadvantageous hardware
+	\item Blur because of motion or missing focus
+\end{enumerate}
+S
+
 \section{Conclusion}
 
 \noindent The most important conclusion of this study is quite sobering. With the experience gained from working with the system, there are way too many factors that influence the result. Even more important those factors or variables are not always controllable. This means from time to time, results from some functions are more or less arbitrary. Especially the calibration of the stereo cameras is quite a difficult task. Most of the time the result of openCV calibration, meaning removing of Distortion as well as rectifying images, isn't comprehensible. A big variable are the calibration-pictures, and their quality, as a consequence this means the camera used is quite important. In our case the camera is designed for this purpose, but this doesn't mean the camera doesn't have problems. This means the calibration is not as simple as most documentations suggest, at least in our experience. By this all following algorithms, for example computation of distance, are inferred by this, lets call it blur. \newline
 If those problems are left aside the result for distance as well as direction are quite satisfying. With a better setup that doesn't depend as much on calibration, for example usage of a Intel RealSense camera could enhance the result enormously. And almost as important, would ease up development since the camera module for JetBot in combination with the nVidia Jetson Nano development board does also provide some problems which won't be discussed at this point. \newline
 As a final conclusion, on a theoretical level, the initial problem doesn't sound complex. But once we factor in the practical part the difficulty level rises significantly. All in all this means the result of this study is quite satisfying once it's viewed from an objective standpoint. \newline
-From an educative perspective this topic was quite well chosen, because it had us digging deep into computer vision. Often, you can solve your tasks just by appending codelines found on Stackoverflow and google error messages. In this project, particularly the calibration part, forced us to read all about the theory to understand what went wrong.
+From an educative perspective this topic was quite well chosen, because it had us digging deep into computer vision. Often, you can solve your tasks just by appending codelines found on Stackoverflow and googling error messages. In this project, particularly the calibration part, forced us to read all about the theory to understand what went wrong.
 \appendices
 
 % can use a bibliography generated by BibTeX as a .bbl file
