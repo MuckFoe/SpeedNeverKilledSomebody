@@ -178,7 +178,7 @@ Cameras are projecting a three dimensional object to a two dimensional image. Th
 	\caption{Intrinsic Matrix}
 \end{figure}
 \noindent
-These internal parameters are represented as an upper triangular matrix K. This matrix has the values fx and fy as the x and y focal lengths. cx and cy as the x and y coordinates of the optical center in the image plane. Gamma is the distortion between the axes, this value is replaced by a "0" in OpenCV´s calibration function.\newline
+These internal parameters are represented as an upper triangular matrix K. This matrix has the values fx and fy as the x and y focal lengths. cx and cy as the x and y coordinates of the optical center in the image plane. Gamma is the distortion between the axes, this value is replaced by a "0" in openCV´s calibration function.\newline
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.4]{extrinsicMatrix.png}
@@ -206,7 +206,7 @@ A camera lens always has some kind of curvature. This curvature is also visible 
 	\caption{Different types of distortion}
 \end{figure}
 \noindent
-To remove this distortion, pictures of a chessboard are taken. OpenCV, the package used to do all calibration steps, can easily detect key points using this chessboard pattern. This is based on the big difference in pixel values between white and black. In combination with the size of the squares as well as the amount of the squares, OpenCV is able to create a calibration matrix removing the distortion.\newline
+To remove this distortion, pictures of a chessboard are taken. openCV, the package used to do all calibration steps, can easily detect key points using this chessboard pattern. This is based on the big difference in pixel values between white and black. In combination with the size of the squares as well as the amount of the squares, openCV is able to create a calibration matrix removing the distortion.\newline
 A very important part is to be very precise while taking the calibration pictures. To get a good result you need to take calibration photos from all parts and angles of the cameras perspective.\newline
 The python implementation looks like the following: \newline
 First of all, the input picture was converted to grayscale and passed to a detection function for chessboard corners.
@@ -331,7 +331,7 @@ Within the UI there are many different parameters to tune. Also there is the opt
 
 \subsection{Depth Map}
 \noindent
-\noindent At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function 'reprojectImageTo3D', which takes the disparity map as well as the Q matrix computed  previously during the rectification process to compute a depth map.
+\noindent At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function \emph{reprojectImageTo3D}, which takes the disparity map as well as the Q matrix computed  previously during the rectification process to compute a depth map.
 Alternatively computation of the distance with the inverse disparity-value is possible. The relation between depth and disparity is non-linear, but by using the inverse this relation becomes linear.
 \begin{figure}[H]
 	\centering
@@ -346,7 +346,7 @@ Alternatively computation of the distance with the inverse disparity-value is po
 \noindent With {\bf M} being the product of the focal length {\bf f} and the baseline {\bf B} of the camera. \newline
 In this practical scenario, the assumption was made that some of these values may have a small error. This might be because the disparity values are not as exact as expected, or because the camera has some internal calibration or construction issues. Similarly to the UI used to find optimal parameters for the Blockmatching Algorithm in figure 7, the {\bf M} parameter gets sort of calibrated as well.
 \subsubsection{Measurement}
-\noindent  
+\noindent
 For testing purposes the initial idea was an event based system. On double-click an openCV event gets triggered, containing an x and y position of the mouse click. These values get enhanced to a window, all disparity values in this window get added up to compute an average. With this basic function computing the distance can be encapsulated . This results in following precision:
 \begin{table}[H]
 	\begin{tabular}{|l|l|}
@@ -385,7 +385,7 @@ For testing purposes the initial idea was an event based system. On double-click
 \begin{python}
 back_sub = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=25, detectShadows=False)
 \end{python}
-\noindent The  \emph{createBackgroundSubtractorMOG2} function works by comparing a history of frames and declaring its unchanged pixels as background. The result is a mask only containing the potential objects that should be tracked. On this, some filtering is performed:
+\noindent The \emph{createBackgroundSubtractorMOG2} function works by comparing a history of frames and declaring its unchanged pixels as background. The result is a mask only containing the potential objects that should be tracked. On this, some filtering is performed:
 \begin{python}
 # Close dark gaps in foreground objects
 mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
@@ -408,8 +408,7 @@ centerpoint_y = y + int(h/2)
 cv2.circle(grayL,(centerpoint_x, centerpoint_y),4,(0,255,0),-1)
 \end{python}
 \noindent The above code draws a bounding rectangle around the object and a point in its center. This points disparity value is used for the distance calculation. This might lead to error, if the object is for example ring-shaped, but taking the average of all the objects disparity-values will lead to big inaccuracies. A way to optimize this was not further pursued. \newline
-This rectangle and point were also used to prevent jumps caused by the inacurracy of the contour-algorithm, as described in the next section.
-
+This rectangle and point were also used to prevent jumps caused by the inaccuracy of the contour-algorithm, as described in the next section.
 
 \subsection{Object Tracking and Direction}
 \begin{figure}[H]
@@ -418,17 +417,17 @@ This rectangle and point were also used to prevent jumps caused by the inacurrac
 	\captionsetup{justification=centering}
 	\caption{Object with movement direction}
 \end{figure}
-\noindent The detected Objects were tracked by saving their coordinates, as well as their distance to an array. Only Objects with their centerpoint within the rectangle-coordinates of the previous frames object, as well as the changed depth within a certain range were taken into consideration, otherwise skipped. The centerpoints coordinates and depth were then compared to the average of the last 3 points and its movement on the 3 axis determined as shown in the next table:
+\noindent The detected Objects were tracked by saving their coordinates, as well as their distance, to an array. Only Objects with their center-point within the rectangle-coordinates of the previous frame, as well as the changed depth within a certain range, were taken into consideration, otherwise skipped. The center-point coordinates and depth were then compared to the average of the last 3 points and its movement on the 3 axis determined as shown in the next table:
 \begin{table}[H]
 	\begin{tabular}{|l|l|}
 		\hline
 		condition & direction \\ \hline
-		 current centerpoint x smaller than average of the last centerpoints x             & left               \\ \hline
-		 current centerpoint x bigger than average of the last centerpoints x              & right               \\ \hline
-		 current centerpoint y smaller than average of the last centerpoints y             & up               \\ \hline
-		 current centerpoint y bigger than average of the last centerpoints y             & down             \\ \hline
-		 current centerpoint z smaller than average of the last centerpoints z             & closer             \\ \hline
-		 current centerpoint z bigger than average of the last centerpoints z              & away              \\ \hline
+		 current center-point x smaller than average of the last center-points x             & left               \\ \hline
+		 current center-point x bigger than average of the last center-points x              & right               \\ \hline
+		 current center-point y smaller than average of the last center-points y             & up               \\ \hline
+		 current center-point y bigger than average of the last center-points y             & down             \\ \hline
+		 current center-point z smaller than average of the last center-points z             & closer             \\ \hline
+		 current center-point z bigger than average of the last center-points z              & away              \\ \hline
 	\end{tabular}
 \end{table}
 \subsubsection{Measurement}
@@ -437,10 +436,10 @@ This rectangle and point were also used to prevent jumps caused by the inacurrac
 
 \section{Conclusion}
 
-\noindent The most important conclusion of this study is quite sobering. With the experience gained from working with the system, there are way too many factors that influence the result. Even more important those factors or variables are not always controllable. This means from time to time, results from some functions are more or less arbitrary. Especially the calibration of the stereo cameras is quite a difficult task. Most of the time the result of openCV calibration, meaning removing of Distortion as well as rectifying images, isn't comprehensible. A big variable are the pictures, and their quality, as a consequence this means the camera used is quite important. In our case the cameras are designed for this purpose, but this doesn't mean the cameras don't have problems. Basically the calibration process was done by try and error. This means the calibration is not as simple as most documentations suggest. By this a the following algorithms, for example computation of distance, are inferred by this, lets call it blur. \newline
-If those problems are left aside the result for distance as well as speed are quite satisfying. With a better setup that doesn't depend as much on calibration, for example usage of a Intel RealSense camera could enhance the result enormously. And almost as important, would ease up development since the camera modul for JetBot in combination with the nVidia Jetson Nano development board does also provide some problems which won't be discussed at this point. \newline
-As a final conclusion, on a theoretical level, the initial problem doesn't really sound super complex. But once we factor in the practical part the difficulty level rises significantly. All in all this means the result of this study is quite satisfying once it's viewed from an objective standpoint. \newline
-From an educative perspective this topic was quite well chosen, because it had us to dig deep into computer vision. Often, you can solve your tasks just by appending codelines found on Stackoverflow and google error messages. In this project, particularly the calibration part, forced us to read all about the theory to understand what went wrong.
+\noindent The most important conclusion of this study is quite sobering. With the experience gained from working with the system, there are way too many factors that influence the result. Even more important those factors or variables are not always controllable. This means from time to time, results from some functions are more or less arbitrary. Especially the calibration of the stereo cameras is quite a difficult task. Most of the time the result of openCV calibration, meaning removing of Distortion as well as rectifying images, isn't comprehensible. A big variable are the calibration-pictures, and their quality, as a consequence this means the camera used is quite important. In our case the camera is designed for this purpose, but this doesn't mean the camera doesn't have problems. This means the calibration is not as simple as most documentations suggest, at least in our experience. By this all following algorithms, for example computation of distance, are inferred by this, lets call it blur. \newline
+If those problems are left aside the result for distance as well as direction are quite satisfying. With a better setup that doesn't depend as much on calibration, for example usage of a Intel RealSense camera could enhance the result enormously. And almost as important, would ease up development since the camera module for JetBot in combination with the nVidia Jetson Nano development board does also provide some problems which won't be discussed at this point. \newline
+As a final conclusion, on a theoretical level, the initial problem doesn't sound complex. But once we factor in the practical part the difficulty level rises significantly. All in all this means the result of this study is quite satisfying once it's viewed from an objective standpoint. \newline
+From an educative perspective this topic was quite well chosen, because it had us digging deep into computer vision. Often, you can solve your tasks just by appending codelines found on Stackoverflow and google error messages. In this project, particularly the calibration part, forced us to read all about the theory to understand what went wrong.
 \appendices
 
 % can use a bibliography generated by BibTeX as a .bbl file
