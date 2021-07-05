@@ -312,7 +312,7 @@ Within the UI there are many different parameters to tune. Also there is the opt
 	\centering
 	\includegraphics[scale=0.5]{disparityMap.png}
 	\captionsetup{justification=centering}
-	\caption{Resulting Disparity Map after calibration without filtering on the left, greyscale left cameras image on the right}
+	\caption{Resulting Disparity Map after calibration without filtering on the left, grayscale left cameras image on the right}
 \end{figure}
 
 \subsection{Depth Map}
@@ -417,7 +417,7 @@ This rectangle and point were also used to prevent jumps caused by the inaccurac
 	\end{tabular}
 \end{table}
 \subsubsection{Measurement}
-\noindent With the test video being a box moving away from us, an accuracy of 70,5\% was achieved with this simple implementation. Almost all wrong calculated directions were caused by incorrect disparity-values when the box wasn´t moving, altering around the correct value. For example with the box standing 80cm away from the camera, the values tend to jump between 79 and 81cm, causing false directions.
+\noindent With the test video being a box moving away from us, an accuracy of 70,5\% was achieved with this simple implementation. Almost all wrong calculated directions were caused by incorrect disparity-values when the box wasn't moving, altering around the correct value. For example with the box standing 80cm away from the camera, the values tends to jump between 79 and 81cm, causing false directions.
 
 
 \section{Problems}
