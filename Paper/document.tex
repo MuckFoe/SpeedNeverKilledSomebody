@@ -11,6 +11,7 @@
 \usepackage{color}
 \usepackage{float}
 \usepackage{caption}
+\usepackage{amsmath}
 \usepackage{xcolor}
 
 \usepackage{titlesec}
@@ -162,8 +163,8 @@ Finding an object on these two images can be done by using epipolar geometry and
 	\caption{Epipolar geometry, projecting two 2D images back to 3D}
 \end{figure}
 \noindent
-Following the above figure this concept works by projecting the line {\bf LL} between the points {\bf OL}(left camera), {\bf XL}(projection of point {\bf X} in the left frame) and {\bf X}(being the target 3D point) as {\bf ECR} on our right picture, crossing the point {\bf XR}(projection of point {\bf X} in the right frame). The same on the left picture, project the line {\bf LR} between the points {\bf OR}(right camera), {\bf XR} and {\bf X}, crossing the point {\bf XL} as {\bf ECL}. The centers of both cameras get also project to there significant other frame.
-With this, the searchspace got reduced of a corresponding point to compute our disparity from a plane to a single line, {\bf ECL} respectively {\bf ECR} (this is called an epipolar constraint). {\bf EL} and {\bf ER} is the projection of one camera onto its significant other cameras pov. These points are called epipoles. Together with {\bf LL} and {\bf LR} this baseline forms the epipolar plane (blue in figure 1). All this information can be represented by the Fundamental matrix of the image, which can be calculated with the projected points and the projection matrices of the cameras. Further mathematical description can be found in the book \emph{Multiple View Geometry in Computer Vision}\cite{hartley_zisserman_2004}, but won't be discussed any further at this point.
+Following the above figure this concept works by projecting the line {\bf LL} between the points {\bf OL}(left camera), {\bf XL}(projection of point {\bf X} in the left frame) and {\bf X}(being the target 3D point) as {\bf ECR} on our right picture, crossing the point {\bf XR}(projection of point {\bf X} in the right frame). The same on the left picture, project the line {\bf LR} between the points {\bf OR}(right camera), {\bf XR} and {\bf X}, crossing the point {\bf XL} as {\bf ECL}. The centers of both cameras are also project to the respective other frame.
+With this, the searchspace of a corresponding point to compute the disparity from is reduced from a plane to a single line, {\bf ECL} respectively {\bf ECR} (this is called an epipolar constraint). {\bf EL} and {\bf ER} are the projections of one camera on the other camera´s view. These points are called epipoles. Together with {\bf LL} and {\bf LR} this baseline forms the epipolar plane (blue in figure 1). All this information can be represented by the Fundamental matrix of the image, which can be calculated with the projected points and the projection matrices of the cameras. Further mathematical description can be found in the book \emph{Multiple View Geometry in Computer Vision}\cite{hartley_zisserman_2004}, but won't be discussed any further at this point.
 
 \section{Workflow}
 \noindent
@@ -171,14 +172,18 @@ This chapter contains a detailed theoretical and practical description of each i
 \subsection{Stereo Camera Calibration}
 \noindent
 Cameras are projecting a three dimensional object to a two dimensional image. This projection is never not only determined by the original object, but also by all parameters of the used camera. These you can separate in two groups, external and internal. External parameters are the camera orientation in different planes. Internal parameters are determined by the cameras internal characteristics.
-\begin{figure}[H]
-	\centering
-	\includegraphics[scale=0.8]{intrinsicMatrix.png}
-	\captionsetup{justification=centering}
-	\caption{Intrinsic Matrix}
-\end{figure}
+\begin{equation} \label{eq:1}
+\large
+K = 
+\begin{bmatrix}
+ f_x & \gamma & c_x \\
+ 0 & f_y & c_y \\
+ 0 & 0 & 1 
+\end{bmatrix}
+\end{equation}
 \noindent
-These internal parameters are represented as an upper triangular matrix K. This matrix has the values fx and fy as the x and y focal lengths. cx and cy as the x and y coordinates of the optical center in the image plane. Gamma is the distortion between the axes, this value is replaced by a "0" in openCV´s calibration function.\newline
+These internal parameters are represented as in \ref{eq:1}, an upper triangular matrix K. This matrix has the values fx and fy as the x and y focal lengths. cx and cy as the x and y coordinates of the optical center in the image plane. Gamma is the distortion between the axes, this value is replaced by a "0" in openCV´s calibration function.\newline
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.4]{extrinsicMatrix.png}
