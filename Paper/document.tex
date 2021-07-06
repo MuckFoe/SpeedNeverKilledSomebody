@@ -159,11 +159,11 @@ Finding an object on these two images can be done by using epipolar geometry and
 	\centering
 	\includegraphics[scale=0.5]{epipolarGeometry.png}
 	\captionsetup{justification=centering}
-	\caption{Epipolar geometry}
+	\caption{Epipolar geometry, projecting two 2D images back to 3D}
 \end{figure}
 \noindent
-This concept works by projecting the line {\bf LL} between the points {\bf OL}(left camera), {\bf XL}(projection of point {\bf X} in the left frame) and {\bf X}(being the target 3D point) as {\bf ECR} on our right picture, crossing the point {\bf XR}(projection of point {\bf X} in the right frame). The same on the left picture, project the line {\bf LR} between the points {\bf OR}(right camera), {\bf XR} and {\bf X}, crossing the point {\bf XL} as {\bf ECL}. The centers of both cameras get also project to there significant other frame.
-With this, the searchspace got reduced of a corresponding point to compute our disparity from to a single line, {\bf ECL} respectively {\bf ECR} (this is called an epipolar constraint). {\bf EL} and {\bf ER} is the projection of one camera onto its significant other cameras pov. These points are called epipoles. Together with {\bf LL} and {\bf LR} this baseline forms the epipolar plane (blue in figure 5). All this information can be represented by the Fundamental matrix of the image, which can be calculated with the projected points and the projection matrices of the cameras. Further mathematical description can be found in the book \emph{Multiple View Geometry in Computer Vision}\cite{hartley_zisserman_2004}, but won't be discussed any further at this point.
+Following the above figure this concept works by projecting the line {\bf LL} between the points {\bf OL}(left camera), {\bf XL}(projection of point {\bf X} in the left frame) and {\bf X}(being the target 3D point) as {\bf ECR} on our right picture, crossing the point {\bf XR}(projection of point {\bf X} in the right frame). The same on the left picture, project the line {\bf LR} between the points {\bf OR}(right camera), {\bf XR} and {\bf X}, crossing the point {\bf XL} as {\bf ECL}. The centers of both cameras get also project to there significant other frame.
+With this, the searchspace got reduced of a corresponding point to compute our disparity from a plane to a single line, {\bf ECL} respectively {\bf ECR} (this is called an epipolar constraint). {\bf EL} and {\bf ER} is the projection of one camera onto its significant other cameras pov. These points are called epipoles. Together with {\bf LL} and {\bf LR} this baseline forms the epipolar plane (blue in figure 1). All this information can be represented by the Fundamental matrix of the image, which can be calculated with the projected points and the projection matrices of the cameras. Further mathematical description can be found in the book \emph{Multiple View Geometry in Computer Vision}\cite{hartley_zisserman_2004}, but won't be discussed any further at this point.
 
 \section{Workflow}
 \noindent
@@ -307,7 +307,7 @@ To improve those parameters, an user interface was build to change the values on
 	\caption{UI for calibrating all parameters of the Block Matching Algorithm}
 \end{figure}
 \noindent
-Within the UI there are many different parameters to tune. Also there is the option to save the parameters. It isn't currently possible to use a button in openCV thus there is a slider which produces a \emph{config.json}. The result can look something like Figure 8.
+Within the UI, displayed in figure 7, there are many different parameters to tune. Also there is the option to save the parameters. It isn't currently possible to use a button in openCV thus there is a slider which produces a \emph{config.json}. The result can look something like Figure 8.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{disparityMap.png}
@@ -318,7 +318,7 @@ Within the UI there are many different parameters to tune. Also there is the opt
 \subsection{Depth Map}
 \noindent
 \noindent At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function \emph{reprojectImageTo3D}, which takes the disparity map as well as the Q matrix computed  previously during the rectification process to compute a depth map.
-Alternatively computation of the distance with the inverse disparity-value is possible. The relation between depth and disparity is non-linear, but by using the inverse this relation becomes linear.
+Alternatively computation of the distance with the inverse disparity-value is possible. The relation between depth and disparity is non-linear, but by using the inverse this relation becomes linear. From a visual standpoint this can be seen in figure 9.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{ratios.png}
@@ -333,7 +333,7 @@ Alternatively computation of the distance with the inverse disparity-value is po
 In this practical scenario, the assumption was made that some of these values may have a small error. This might be because the disparity values are not as exact as expected, or because the camera has some internal calibration or construction issues. Similarly to the UI used to find optimal parameters for the Blockmatching Algorithm in figure 7, the {\bf M} parameter gets sort of calibrated as well.
 \subsubsection{Measurement}
 \noindent
-For testing purposes the initial idea was an event based system. On double-click, an openCV event gets triggered containing an x and y position of the mouse click. These values get enhanced to a window, all disparity values in this window get added up to compute an average. With this basic function computing the distance can be encapsulated. This results in following precision:
+For testing purposes the initial idea was an event based system. On double-click, an openCV event gets triggered containing an x and y position of the mouse click. These values get enhanced to a window, all disparity values in this window get added up to compute an average.An example can be seen in figure 10. With this basic function computing the distance can be encapsulated. This results in following precision:
 \begin{table}[H]
 	\begin{tabular}{|l|l|}
 		\hline
@@ -359,7 +359,7 @@ For testing purposes the initial idea was an event based system. On double-click
 \end{figure}
 
 \subsection{Object Detection}
-\noindent For object detection the first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparity map being an inaccurate and error-prone projection of the real picture, this algorithm ended up detecting only unusable patterns:
+\noindent For object detection the first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparity map being an inaccurate and error-prone projection of the real picture, this algorithm ended up detecting only unusable patterns, which can be seen in the following figure:
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{handstand_comparison.png}
@@ -417,7 +417,7 @@ This rectangle and point were also used to prevent jumps caused by the inaccurac
 	\end{tabular}
 \end{table}
 \subsubsection{Measurement}
-\noindent With the test video being a box moving away from us, an accuracy of 70,5\% was achieved with this simple implementation. Almost all wrong calculated directions were caused by incorrect disparity-values when the box wasn't moving, altering around the correct value. For example with the box standing 80cm away from the camera, the values tends to jump between 79 and 81cm, causing false directions.
+\noindent With the test video being a box moving away from us, an accuracy of 70,5\% was achieved with this simple implementation. Almost all wrong calculated directions were caused by incorrect disparity-values when the box wasn't moving, altering around the correct value. For example with the box standing 80cm away from the camera, the values tends to jump between 79 and 81cm, causing false directions. A visualization of the object tracking and direction can be seen in figure 12.
 
 
 \section{Problems}
