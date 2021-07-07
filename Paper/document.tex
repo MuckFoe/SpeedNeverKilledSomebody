@@ -162,10 +162,11 @@ Finding an object on these two images can be done by using epipolar geometry and
 	\includegraphics[scale=0.5]{epipolarGeometry.png}
 	\captionsetup{justification=centering}
 	\caption{Epipolar geometry, projecting two 2D images back to 3D}
+	\label{pic:epipolar}
 \end{figure}
 \noindent
-Following the above figure this concept works by projecting the line {\bf LL} between the points {\bf OL}(left camera), {\bf XL}(projection of point {\bf X} in the left frame) and {\bf X}(being the target 3D point) as {\bf ECR} on our right picture, crossing the point {\bf XR}(projection of point {\bf X} in the right frame). The same on the left picture, project the line {\bf LR} between the points {\bf OR}(right camera), {\bf XR} and {\bf X}, crossing the point {\bf XL} as {\bf ECL}. The centers of both cameras are also project to the respective other frame.
-With this, the searchspace of a corresponding point to compute the disparity from is reduced from a plane to a single line, {\bf ECL} respectively {\bf ECR} (this is called an epipolar constraint). {\bf EL} and {\bf ER} are the projections of one camera on the other camera´s view. These points are called epipoles. Together with {\bf LL} and {\bf LR} this baseline forms the epipolar plane (blue in figure 1). All this information can be represented by the Fundamental matrix of the image, which can be calculated with the projected points and the projection matrices of the cameras. Further mathematical description can be found in the book \emph{Multiple View Geometry in Computer Vision}\cite{hartley_zisserman_2004}, but won't be discussed any further at this point.
+Following the above figure\ref{pic:epipolar} this concept works by projecting the line {\bf LL} between the points {\bf OL}(left camera), {\bf XL}(projection of point {\bf X} in the left frame) and {\bf X}(being the target 3D point) as {\bf ECR} on our right picture, crossing the point {\bf XR}(projection of point {\bf X} in the right frame). The same on the left picture, project the line {\bf LR} between the points {\bf OR}(right camera), {\bf XR} and {\bf X}, crossing the point {\bf XL} as {\bf ECL}. The centers of both cameras are also project to the respective other frame.
+With this, the searchspace of a corresponding point to compute the disparity from is reduced from a plane to a single line, {\bf ECL} respectively {\bf ECR} (this is called an epipolar constraint). {\bf EL} and {\bf ER} are the projections of one camera on the other camera´s view. These points are called epipoles. Together with {\bf LL} and {\bf LR} this baseline forms the epipolar plane (blue in figure \ref{pic:epipolar}). All this information can be represented by the Fundamental matrix of the image, which can be calculated with the projected points and the projection matrices of the cameras. Further mathematical description can be found in the book \emph{Multiple View Geometry in Computer Vision}\cite{hartley_zisserman_2004}, but won't be discussed any further at this point.
 
 \section{Workflow}
 \noindent
@@ -176,11 +177,11 @@ Cameras are projecting a three dimensional object to a two dimensional image. Th
 \begin{equation} \label{eq:1}
 \includegraphics[scale=0.8]{intrinsicMatrix.png}
 %\large
-%K = 
+%K =
 %\begin{bmatrix}
  %f_x & \gamma & c_x \\
  %0 & f_y & c_y \\
- %0 & 0 & 1 
+ %0 & 0 & 1
 %\end{bmatrix}
 \end{equation}
 \noindent
@@ -208,12 +209,13 @@ Together these form the 3x4 Projection Matrix \eqref{eq:3}. This matrix and the 
 This Calibration consists of two steps removing of Distortion as well as rectifying the images\cite{ImageRectification}. \newline
 \subsubsection{Distortion}
 \noindent
-A camera lens always has some kind of curvature. This curvature is also visible in an image taken with this lens. This is called distortion. There are many different types of distortion which can be seen in the next figure.
+A camera lens always has some kind of curvature. This curvature is also visible in an image taken with this lens. This is called distortion. There are many different types of distortion which can be seen in the next figure\ref{pic:distortion}.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.3]{distortion.jpg}
 	\captionsetup{justification=centering}
 	\caption{Different types of distortion}
+	\label{pic:distortion}
 \end{figure}
 \noindent
 To remove this distortion, pictures of a chessboard are taken. openCV, the package used to do all calibration steps, can easily detect key points using this chessboard pattern. This is based on the big difference in pixel values between white and black. In combination with the size of the squares as well as the amount of the squares, openCV is able to create a calibration matrix removing the distortion.\newline
@@ -315,35 +317,38 @@ To improve those parameters, an user interface was build to change the values on
 	\label{UI}
 	\captionsetup{justification=centering}
 	\caption{UI for calibrating all parameters of the Block Matching Algorithm}
+	\label{pic:blockmatching}
 \end{figure}
 \noindent
-Within the UI, displayed in figure 7, there are many different parameters to tune. Also there is the option to save the parameters. It isn't currently possible to use a button in openCV thus there is a slider which produces a \emph{config.json}. The result can look something like Figure 8.
+Within the UI, displayed in figure \ref{pic:blockmatching}, there are many different parameters to tune. Also there is the option to save the parameters. It isn't currently possible to use a button in openCV thus there is a slider which produces a \emph{config.json}. The result can look something like figure \ref{pic:dispMap}.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{disparityMap.png}
 	\captionsetup{justification=centering}
 	\caption{Resulting Disparity Map after calibration without filtering on the left, grayscale left cameras image on the right}
+	\label{pic:dispMap}
 \end{figure}
 \pagebreak
 \subsection{Depth Map}
 \noindent
 \noindent At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function \emph{reprojectImageTo3D}, which takes the disparity map as well as the Q matrix computed  previously during the rectification process to compute a depth map.
-Alternatively computation of the distance with the inverse disparity-value is possible. The relation between depth and disparity is non-linear, but by using the inverse this relation becomes linear. From a visual standpoint this can be seen in figure 9.
+Alternatively computation of the distance with the inverse disparity-value is possible. The relation between depth and disparity is non-linear, but by using the inverse this relation becomes linear. From a visual standpoint this can be seen in figure \ref{pic:depthrelation}.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{ratios.png}
 	\captionsetup{justification=centering}
 	\caption{Relation between Depth and Disparity(left) and Inverse Disparity(right)}
+	\label{pic:depthrelation}
 \end{figure}
 \noindent Done by the following equation:
 \begin{equation}
 	Distance = \frac{M}{Disparity}
 \end{equation}
 \noindent With {\bf M} being the product of the focal length {\bf f} and the baseline {\bf B} of the camera. \newline
-In this practical scenario, the assumption was made that some of these values may have a small error. This might be because the disparity values are not as exact as expected, or because the camera has some internal calibration or construction issues. Similarly to the UI used to find optimal parameters for the Blockmatching Algorithm in figure 7, the {\bf M} parameter gets sort of calibrated as well.
+In this practical scenario, the assumption was made that some of these values may have a small error. This might be because the disparity values are not as exact as expected, or because the camera has some internal calibration or construction issues. Similarly to the UI used to find optimal parameters for the Blockmatching Algorithm in figure \ref{pic:blockmatching}, the {\bf M} parameter gets sort of calibrated as well.
 \subsubsection{Measurement}
 \noindent
-For testing purposes the initial idea was an event based system. On double-click, an openCV event gets triggered containing an x and y position of the mouse click. These values get enhanced to a window, all disparity values in this window get added up to compute an average.An example can be seen in figure 10. With this basic function computing the distance can be encapsulated. This results in following precision:
+For testing purposes the initial idea was an event based system. On double-click, an openCV event gets triggered containing an x and y position of the mouse click. These values get enhanced to a window, all disparity values in this window get added up to compute an average.An example can be seen in figure \ref{pic:depthMap}. With this basic function computing the distance can be encapsulated. This results in following precision:
 \begin{table}[H]
 	\begin{tabular}{|l|l|}
 		\hline
@@ -366,16 +371,17 @@ For testing purposes the initial idea was an event based system. On double-click
 	\includegraphics[scale=0.5]{distanceCalcRegression.png}
 	\captionsetup{justification=centering}
 	\caption{Depth map calculated with blue color filter and a computed distance based on a regression function}
+	\label{pic:depthMap}
 \end{figure}
 \pagebreak
 \subsection{Object Detection}
-\noindent For object detection the first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparity map being an inaccurate and error-prone projection of the real picture, this algorithm ended up detecting only unusable patterns, which can be seen in the following figure:
+\noindent For object detection the first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparity map being an inaccurate and error-prone projection of the real picture, this algorithm ended up detecting only unusable patterns, which can be seen in the following figure\ref{pic:tracking}:
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{handstand_comparison.png}
-	\label{tracking}
 	\captionsetup{justification=centering}
-	\caption{Left: Detection on original picture Right: Detection on disparity picture }
+	\caption{Left: Detection on original picture Right: Detection on disparity picture}
+	\label{pic:tracking}
 \end{figure}
 \noindent To solve this problem the original grayscale picture of one of the cameras was used to detect the objects. This was done by creating a mask that subtracts the unmoving areas of the picture, leaving only the targeted object. This was done by using the following openCV function:
 \begin{python}
@@ -412,6 +418,7 @@ This rectangle and point were also used to prevent jumps caused by the inaccurac
 	\includegraphics[scale=0.5]{box_direction.png}
 	\captionsetup{justification=centering}
 	\caption{Object with movement direction}
+	\label{pic:resultfigure}
 \end{figure}
 \noindent The detected Objects were tracked by saving their coordinates, as well as their distance, to an array. Only Objects with their center-point within the rectangle-coordinates of the previous frame, as well as the changed depth within a certain range, were taken into consideration, otherwise skipped. The center-point coordinates and depth were then compared to the average of the last 3 points and its movement on the 3 axis determined as shown in the next table:
 \begin{table}[H]
@@ -427,7 +434,7 @@ This rectangle and point were also used to prevent jumps caused by the inaccurac
 	\end{tabular}
 \end{table}
 \subsubsection{Measurement}
-\noindent With the test video being a box moving away from us, an accuracy of 70,5\% was achieved with this simple implementation. Almost all wrong calculated directions were caused by incorrect disparity-values when the box wasn't moving, altering around the correct value. For example with the box standing 80cm away from the camera, the values tends to jump between 79 and 81cm, causing false directions. A visualization of the object tracking and direction can be seen in figure 12.
+\noindent With the test video being a box moving away from us, an accuracy of 70,5\% was achieved with this simple implementation. Almost all wrong calculated directions were caused by incorrect disparity-values when the box wasn't moving, altering around the correct value. For example with the box standing 80cm away from the camera, the values tends to jump between 79 and 81cm, causing false directions. A visualization of the object tracking and direction can be seen in \ref{pic:resultfigure}.
 
 
 \section{Problems}
