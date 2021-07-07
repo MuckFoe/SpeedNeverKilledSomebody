@@ -13,6 +13,7 @@
 \usepackage{caption}
 \usepackage{amsmath}
 \usepackage{xcolor}
+\usepackage{mathtools, bigstrut}
 
 \usepackage{titlesec}
 \titleformat{\section}
@@ -173,33 +174,37 @@ This chapter contains a detailed theoretical and practical description of each i
 \noindent
 Cameras are projecting a three dimensional object to a two dimensional image. This projection is never not only determined by the original object, but also by all parameters of the used camera. These you can separate in two groups, external and internal. External parameters are the camera orientation in different planes. Internal parameters are determined by the cameras internal characteristics.
 \begin{equation} \label{eq:1}
-\large
-K = 
-\begin{bmatrix}
- f_x & \gamma & c_x \\
- 0 & f_y & c_y \\
- 0 & 0 & 1 
-\end{bmatrix}
+\includegraphics[scale=0.8]{intrinsicMatrix.png}
+%\large
+%K = 
+%\begin{bmatrix}
+ %f_x & \gamma & c_x \\
+ %0 & f_y & c_y \\
+ %0 & 0 & 1 
+%\end{bmatrix}
 \end{equation}
 \noindent
-These internal parameters are represented as in \ref{eq:1}, an upper triangular matrix K. This matrix has the values fx and fy as the x and y focal lengths. cx and cy as the x and y coordinates of the optical center in the image plane. Gamma is the distortion between the axes, this value is replaced by a "0" in openCV´s calibration function.\newline
+These internal parameters are represented in an upper triangular matrix K \eqref{eq:1}. This matrix has the values fx and fy as the x and y focal lengths. cx and cy as the x and y coordinates of the optical center in the image plane. Gamma is the distortion between the axes, this value is replaced by a "0" in openCV´s calibration function.\newline
 
-\begin{figure}[H]
-	\centering
+\begin{equation} \label{eq:2}
 	\includegraphics[scale=0.4]{extrinsicMatrix.png}
-	\captionsetup{justification=centering}
-	\caption{Extrinsic Matrix}
-\end{figure}
+\end{equation}
+
+%\begin{bmatrix}
+%\begin{array}{@{}ccc|c@{}}
+   %  r_{11}&r_{12} &r_{13} & t_1 \\
+     %r_{21}&r_{22} &r_{23} & t_2 \\
+     %r_{31}&r_{32} &r_{33} & t_3
+%\end{array}\end{bmatrix}
+
 \noindent
-The external parameters are represented by an 3x3 rotation matrix, that indicates the rotation bias of the camera. Combined with an 3x1 translation vector, which describes the position of the world coordinates origin in the camera coordinate system.\newline
-\begin{figure}[H]
+As seen above \eqref{eq:2} the external parameters are represented by an 3x3 rotation matrix, that indicates the rotation bias of the camera. Combined with an 3x1 translation vector, which describes the position of the world coordinates origin in the camera coordinate system.\newline
+\begin{equation}\label{eq:3}
 	\centering
 	\includegraphics[scale=0.7]{projectionMatrix.png}
-	\captionsetup{justification=centering}
-	\caption{Projection Matrix}
-\end{figure}
+\end{equation}
 \noindent
-Together these form the 3x4 Projection Matrix. This matrix and the real world coordinates of our point is used to calculate the image coordinates of the 2D projection. Calibration does nothing else than alter these matrices so our 2D projection matches the 3D object in the real world. This is usually done by giving the calibrating program/ function a set of 2D images with known 3D coordinates.
+Together these form the 3x4 Projection Matrix \eqref{eq:3}. This matrix and the real world coordinates of our point is used to calculate the image coordinates of the 2D projection. Calibration does nothing else than alter these matrices so our 2D projection matches the 3D object in the real world. This is usually done by giving the calibrating program/ function a set of 2D images with known 3D coordinates.
 This Calibration consists of two steps removing of Distortion as well as rectifying the images\cite{ImageRectification}. \newline
 \subsubsection{Distortion}
 \noindent
@@ -275,7 +280,7 @@ rect_l, rect_r, proj_mat_l, proj_mat_r, Q, roiL, roiR = cv2.stereoRectify(new_mt
   										rectify_scale,
  										(0, 0))
 \end{python}
-Once again all previous results are input for the function. The function results in two rectification transform matrices, which transfer points from unrectified camera's coordinate system to points in the rectified camera's coordinate system.
+Once again all previous results are input for the function. The function results in two rectification transform matrices, which transfer points from unrectified camera's coordinate system to points in the rectified camera's coordinate system. \pagebreak
 
 \subsection{Disparity Map}
 \noindent
@@ -319,7 +324,7 @@ Within the UI, displayed in figure 7, there are many different parameters to tun
 	\captionsetup{justification=centering}
 	\caption{Resulting Disparity Map after calibration without filtering on the left, grayscale left cameras image on the right}
 \end{figure}
-
+\pagebreak
 \subsection{Depth Map}
 \noindent
 \noindent At this point there are two different options to compute a depth value from the previously created disparity map. The first one being the usage of the openCV function \emph{reprojectImageTo3D}, which takes the disparity map as well as the Q matrix computed  previously during the rectification process to compute a depth map.
@@ -362,7 +367,7 @@ For testing purposes the initial idea was an event based system. On double-click
 	\captionsetup{justification=centering}
 	\caption{Depth map calculated with blue color filter and a computed distance based on a regression function}
 \end{figure}
-
+\pagebreak
 \subsection{Object Detection}
 \noindent For object detection the first idea was to track large appearances on the disparity map sorted by their calculated depth, beginning with the nearest. Due to the disparity map being an inaccurate and error-prone projection of the real picture, this algorithm ended up detecting only unusable patterns, which can be seen in the following figure:
 \begin{figure}[H]
@@ -436,7 +441,7 @@ This rectangle and point were also used to prevent jumps caused by the inaccurac
 	\item Blur because of motion or missing focus
 \end{enumerate}
 
-
+\pagebreak
 \section{Conclusion}
 
 \noindent The most important conclusion of this study is quite sobering. With the experience gained from working with the system, there are way too many factors that influence the result. Even more important those factors or variables are not always controllable. This means from time to time, results from some functions are more or less arbitrary. Especially the calibration of the stereo cameras is quite a difficult task. Most of the time the result of openCV calibration, meaning removing of Distortion as well as rectifying images, isn't comprehensible. A big variable are the calibration-pictures, and their quality, as a consequence this means the camera used is quite important. In our case the camera is designed for this purpose, but this doesn't mean the camera doesn't have problems. This means the calibration is not as simple as most documentations suggest, at least in our experience. By this all following algorithms, for example computation of distance, are inferred by this, lets call it blur. \newline
